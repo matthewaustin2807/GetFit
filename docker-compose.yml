@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: fitness-postgres
+    environment:
+      POSTGRES_DB: fitness_platform
+      POSTGRES_USER: fitness_user
+      POSTGRES_PASSWORD: fitness_pass
+      POSTGRES_MULTIPLE_DATABASES: user_db,workout_db,analytics_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres:/docker-entrypoint-initdb.d
+    networks:
+      - fitness-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fitness_user -d fitness_platform"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # MongoDB Database
+  mongodb:
+    image: mongo:7-jammy
+    container_name: fitness-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo_user
+      MONGO_INITDB_ROOT_PASSWORD: mongo_pass
+      MONGO_INITDB_DATABASE: nutrition_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./infrastructure/docker/mongodb:/docker-entrypoint-initdb.d
+    networks:
+      - fitness-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: fitness-redis
+    command: redis-server --appendonly yes --requirepass redis_pass
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - fitness-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # pgAdmin (PostgreSQL GUI)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: fitness-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@fitness.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - fitness-network
+    depends_on:
+      - postgres
+
+  # MongoDB Express (MongoDB GUI)
+  mongo-express:
+    image: mongo-express:latest
+    container_name: fitness-mongo-express
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: mongo_user
+      ME_CONFIG_MONGODB_ADMINPASSWORD: mongo_pass
+      ME_CONFIG_MONGODB_URL: mongodb://mongo_user:mongo_pass@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin123
+    ports:
+      - "8081:8081"
+    networks:
+      - fitness-network
+    depends_on:
+      - mongodb
+
+  # Redis Commander (Redis GUI)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: fitness-redis-commander
+    environment:
+      REDIS_HOSTS: local:redis:6379:0:redis_pass
+      HTTP_USER: admin
+      HTTP_PASSWORD: admin123
+    ports:
+      - "8082:8081"
+    networks:
+      - fitness-network
+    depends_on:
+      - redis
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  redis_data:
+  pgadmin_data:
+
+networks:
+  fitness-network:
+    driver: bridge
