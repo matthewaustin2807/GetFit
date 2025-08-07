@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:8083")
 public class HealthController {
 
   @GetMapping("/health")
