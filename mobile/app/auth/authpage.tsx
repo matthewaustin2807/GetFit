@@ -17,6 +17,7 @@ import { Pacifico_400Regular } from '@expo-google-fonts/pacifico'
 import { router, Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useAuthStore } from '@/src/store/authStore';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -29,45 +30,32 @@ const rf = (size: number) => size * PixelRatio.getFontScale();
 export default function AuthPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+
+    const { login, isAuthenticated } = useAuthStore();
+
+    // Redirect if already authenticated
+    React.useEffect(() => {
+        if (isAuthenticated) {
+            router.replace('/dashboard/homepage'); // You'll need to create this screen
+        }
+    }, [isAuthenticated]);
 
     let [fontsLoaded] = useFonts({
         Pacifico_400Regular
     });
 
     const handleLogin = async () => {
+
         if (!email || !password) {
             Alert.alert('Error', 'Please fill in all fields');
             return;
         }
 
-        setIsLoading(true);
         try {
-            const response = await fetch('http://YOUR_IP:8091/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: email.toLowerCase().trim(),
-                    password: password,
-                }),
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                Alert.alert('Success!', 'Login successful');
-                // Navigate to dashboard/home page (you'll create this later)
-                // router.push('/dashboard');
-            } else {
-                Alert.alert('Login Failed', data.error || 'Invalid credentials');
-            }
-
-        } catch (error) {
-            Alert.alert('Error', 'Could not connect to server');
-        } finally {
-            setIsLoading(false);
+            await login(email.toLowerCase().trim(), password);
+            // No need to handle success - auth store and useEffect handles redirect
+        } catch (error: any) {
+            Alert.alert('Login Failed', error.message || 'Invalid credentials');
         }
     };
 
@@ -79,6 +67,7 @@ export default function AuthPage() {
     const handleForgotPassword = () => {
         Alert.alert('Forgot Password', 'Feature coming soon!');
     };
+
     if (!fontsLoaded) {
         return null;
     } else {
@@ -125,9 +114,7 @@ export default function AuthPage() {
                             />
 
                             <TouchableOpacity
-                                style={[isLoading && styles.buttonDisabled]}
                                 onPress={handleLogin}
-                                disabled={isLoading}
                             >
                                 <LinearGradient
                                     colors={['#03254E', '#8A8A8A']}
@@ -135,11 +122,12 @@ export default function AuthPage() {
                                     end={{ x: 0.76, y: 0 }}
                                     style={styles.loginButton}
                                 >
-                                {isLoading ? (
-                                    <ActivityIndicator color="#fff" />
-                                ) : (
+                                    {/* {isLoading ? (
+                                        <ActivityIndicator color="#fff" />
+                                    ) : (
+                                        <Text style={styles.loginButtonText}>Login</Text>
+                                    )} */}
                                     <Text style={styles.loginButtonText}>Login</Text>
-                                )}
                                 </LinearGradient>
 
                             </TouchableOpacity>

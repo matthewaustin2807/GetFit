@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, Text, KeyboardAvoidingView, Platform, StyleSheet, ScrollView, TextInput, Dimensions, PixelRatio, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { OpenSans_400Regular } from '@expo-google-fonts/open-sans'
 import { useFonts } from 'expo-font';
@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useAuthStore } from '@/src/store/authStore';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -20,6 +21,8 @@ const SignUpPage = () => {
         OpenSans_400Regular
     })
 
+    const { register, isAuthenticated } = useAuthStore();
+
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [dob, setDob] = useState(new Date());
@@ -27,7 +30,10 @@ const SignUpPage = () => {
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
     const [passwordNotMatch, setPasswordNotMatch] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
+
+    useEffect(() => {
+        if (isAuthenticated) router.replace('/dashboard/homepage')
+    }, [isAuthenticated]);
 
     const onChangeDob = (event: any, selectedDate: any) => {
         if (selectedDate) {
@@ -45,18 +51,18 @@ const SignUpPage = () => {
         }
     }
 
-    const handleSignUp = () => {
+    const handleSignUp = async () => {
         if (!username || !email || !password) {
             Alert.alert('Incomplete', 'Please fill in all fields');
             return;
         }
 
-        const requestBody = {
-            name: username,
-            email: email.toLowerCase().trim(),
-            password: password,
-            dateOfBirth: dobString
-        };
+        try {
+            await register(username, email, password, dobString);
+        } catch (error: any) {
+            Alert.alert('Sign Up Failed', error.message || 'Invalid credentials');
+        }
+
     }
 
     if (!fontsLoaded) {
@@ -168,11 +174,7 @@ const SignUpPage = () => {
                                     end={{ x: 0.76, y: 0 }}
                                     style={styles.signUpButton}
                                 >
-                                    {isLoading ? (
-                                        <ActivityIndicator color="#fff" />
-                                    ) : (
-                                        <Text style={styles.signUpButtonText}>Sign Up</Text>
-                                    )}
+                                    <Text style={styles.signUpButtonText}>Sign Up</Text>
                                 </LinearGradient>
 
                             </TouchableOpacity>
@@ -180,7 +182,7 @@ const SignUpPage = () => {
 
                         {/* Back to Sign In */}
                         <View style={styles.signInSection}>
-                            <Text style={styles.signInText}>Already have an Account? </Text>
+                            <Text style={styles.signInText}>Already have an account? </Text>
                             <TouchableOpacity
                                 onPress={() => router.back()}
                             >
