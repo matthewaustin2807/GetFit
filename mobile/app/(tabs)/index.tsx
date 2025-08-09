@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 export default function Index() {
   useEffect(() => {
     // This runs immediately when the component loads
-    router.replace('/auth/authpage');
+    router.replace('/dashboard/homepage');
   }, []);
 
   return null; // Shows nothing (blank screen briefly)
