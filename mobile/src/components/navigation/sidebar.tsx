@@ -1,16 +1,16 @@
-import React, { useState, useRef } from 'react';
+import { router } from 'expo-router';
+import React, { useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
+  Alert,
   Animated,
   Dimensions,
   PixelRatio,
-  Alert,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { router } from 'expo-router';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore } from '../../store/authStore';
 
 const { width, height } = Dimensions.get('window');
 const wp = (percentage: number) => (percentage * width) / 100;
@@ -29,12 +29,12 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({ isOpen, onClose }) => {
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
   const [isVisible, setIsVisible] = useState(false);
-  
+
   const { user, logout, isLoading } = useAuthStore();
 
   React.useEffect(() => {
     if (isOpen) {
-        setIsVisible(true);
+      setIsVisible(true);
       // Slide in
       Animated.parallel([
         Animated.timing(slideAnim, {
@@ -86,15 +86,15 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({ isOpen, onClose }) => {
     );
   };
 
-//   const handleProfile = () => {
-//     onClose();
-//     router.push('/profile');
-//   };
+  //   const handleProfile = () => {
+  //     onClose();
+  //     router.push('/profile');
+  //   };
 
-//   const handleSettings = () => {
-//     onClose();
-//     router.push('/settings');
-//   };
+  //   const handleSettings = () => {
+  //     onClose();
+  //     router.push('/settings');
+  //   };
 
   if (!isVisible) return null;
 
