@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     fontSize: rf(18),
     fontWeight: '600',
     color: '#333',
-    marginBottom: hp(2),
+    marginBottom: hp(1),
   },
   itemContainer: {
     // Container for each item - sizing handled by props

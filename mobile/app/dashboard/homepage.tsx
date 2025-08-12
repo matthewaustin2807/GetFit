@@ -133,14 +133,7 @@ const HomePage = () => {
     } else {
         return (
             <>
-                <Stack.Screen options={{ headerShown: false }} />
-                <SafeAreaView style={styles.container}>
-                    {/** Header containing sidebar and greeting */}
-                    <View style={styles.header}>
-                        <TouchableOpacity style={styles.menuButton} onPress={openDrawer}>
-                            <Text style={styles.hamburger}>☰</Text>
-                        </TouchableOpacity>
-                    </View>
+                <View style={styles.container}>
                     {/** Greeting section */}
                     <View style={styles.greetingContainer}>
                         <Text style={styles.greeting}>{getGreeting(currTime)}</Text>
@@ -190,8 +183,7 @@ const HomePage = () => {
                             activeDotColor="#667eea"
                         />
                     </View>
-                    <SideDrawer isOpen={isDrawerOpen} onClose={closeDrawer} />
-                </SafeAreaView>
+                </View>
             </>
 
         );
@@ -205,22 +197,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#f5f5f5',
         paddingHorizontal: wp(5)
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: hp(1),
-        backgroundColor: '#f5f5f5',
-    },
-    menuButton: {
-        paddingTop: wp(2),
-    },
-    hamburger: {
-        fontSize: rf(36),
-        color: '#4a5568',
-    },
     greetingContainer: {
+        minHeight: wp(24),
         flex: 1,
-        maxHeight: hp(11),
         flexDirection: 'column',
         alignItems: 'flex-end'
     },
@@ -233,6 +212,7 @@ const styles = StyleSheet.create({
         fontFamily: 'OpenSans_400Regular',
     },
     dateContainer: {
+        minHeight: wp(8),
         flex: 1,
         maxHeight: hp(4),
     },

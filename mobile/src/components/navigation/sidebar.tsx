@@ -86,10 +86,10 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({ isOpen, onClose }) => {
     );
   };
 
-  //   const handleProfile = () => {
-  //     onClose();
-  //     router.push('/profile');
-  //   };
+    const handleProfile = () => {
+      onClose();
+      router.push('/dashboard/profile/profilepage');
+    };
 
   //   const handleSettings = () => {
   //     onClose();
@@ -135,6 +135,12 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({ isOpen, onClose }) => {
 
         {/* Menu Items */}
         <View style={styles.menuSection}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleProfile}>
+            <Text style={styles.menuIcon}>👤</Text>
+            <Text style={styles.menuText}>My Profile</Text>
+            <Text style={styles.menuArrow}>›</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
             <Text style={styles.menuIcon}>🚪</Text>
             <Text style={styles.menuText}>Logout</Text>

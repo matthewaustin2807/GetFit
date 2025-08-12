@@ -36,7 +36,7 @@ export default function AuthPage() {
     // Redirect if already authenticated
     React.useEffect(() => {
         if (isAuthenticated) {
-            router.replace('/dashboard/homepage'); // You'll need to create this screen
+            router.replace('/dashboard/homepage'); 
         }
     }, [isAuthenticated]);
 
