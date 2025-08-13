@@ -13,8 +13,9 @@ import {
   Platform,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
-// import { useAuthStore } from '../../src/store/authStore';
-// import { ApiService } from '../../src/services/api';
+import { useAuthStore } from '@/src/store/authStore';
+import { ApiService } from '@/src/services/api/authApi';
+
 
 const { width, height } = Dimensions.get('window');
 const wp = (percentage: number) => (percentage * width) / 100;
