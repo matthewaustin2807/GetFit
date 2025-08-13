@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -36,6 +36,7 @@ interface GoalData {
 }
 
 const EditGoalPage = () => {
+  const { user, updateUser } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -58,6 +59,26 @@ const EditGoalPage = () => {
     activityLevels: [],
     fitnessGoals: [],
   });
+
+  const getWeightChangeText = useCallback(() => {
+    const current = parseFloat(goals.currentWeight) || 0;
+    const target = parseFloat(goals.targetWeight) || 0;
+    const difference = current - target;
+
+    if (difference === 0) return 'Maintain current weight';
+    if (difference > 0) return `Lose ${difference.toFixed(1)} kg`;
+    return `Gain ${Math.abs(difference).toFixed(1)} kg`;
+  }, [goals.currentWeight, goals.targetWeight]); // Only recreate when these change
+
+  const getWeightChangeColor = useCallback(() => {
+    const current = parseFloat(goals.currentWeight) || 0;
+    const target = parseFloat(goals.targetWeight) || 0;
+    const difference = current - target;
+
+    if (difference === 0) return '#28a745';
+    if (difference > 0) return '#dc3545';
+    return '#007bff';
+  }, [goals.currentWeight, goals.targetWeight]);
 
   // Initialize with user data
   // useEffect(() => {
@@ -433,26 +454,6 @@ const EditGoalPage = () => {
       </ScrollView>
     </>
   );
-
-  function getWeightChangeText() {
-    const current = parseFloat(goals.currentWeight) || 0;
-    const target = parseFloat(goals.targetWeight) || 0;
-    const difference = current - target;
-
-    if (difference === 0) return 'Maintain current weight';
-    if (difference > 0) return `Lose ${difference.toFixed(1)} kg`;
-    return `Gain ${Math.abs(difference).toFixed(1)} kg`;
-  }
-
-  function getWeightChangeColor() {
-    const current = parseFloat(goals.currentWeight) || 0;
-    const target = parseFloat(goals.targetWeight) || 0;
-    const difference = current - target;
-
-    if (difference === 0) return '#28a745'; // Green for maintain
-    if (difference > 0) return '#dc3545'; // Red for lose weight
-    return '#007bff'; // Blue for gain weight
-  }
 }
 
 export default EditGoalPage
