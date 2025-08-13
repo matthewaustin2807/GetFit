@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 export default function Index() {
   useEffect(() => {
     // This runs immediately when the component loads
-    router.replace('/dashboard/profile/profilepage');
+    router.replace('/dashboard/profile/profilepage/editgoal');
   }, []);
 
   return null; // Shows nothing (blank screen briefly)
