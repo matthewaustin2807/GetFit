@@ -198,11 +198,18 @@ public class AuthController {
     userMap.put("activityLevel", user.getActivityLevel() != null ? user.getActivityLevel().toString() : null);
     userMap.put("fitnessGoal", user.getFitnessGoal() != null ? user.getFitnessGoal().toString() : null);
     userMap.put("targetWeightKg", user.getTargetWeightKg());
+    userMap.put("dailyCalories", user.getDailyCalories());
+    userMap.put("dailyProtein", user.getDailyProtein());
+    userMap.put("dailyCarbs", user.getDailyCarbs());
+    userMap.put("dailyFat", user.getDailyFat());
+    userMap.put("dailyWater", user.getDailyWater());
+    userMap.put("weeklyWorkouts", user.getWeeklyWorkouts());
     userMap.put("preferredUnits", user.getPreferredUnits());
     userMap.put("timezone", user.getTimezone());
     userMap.put("age", user.getAge());
     userMap.put("bmi", user.getBMI());
     userMap.put("createdAt", user.getCreatedAt());
+    userMap.put("updatedAt", user.getUpdatedAt());
 
     response.put("user", userMap);
 

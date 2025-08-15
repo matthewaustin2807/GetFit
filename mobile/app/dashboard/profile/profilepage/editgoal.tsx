@@ -81,137 +81,143 @@ const EditGoalPage = () => {
   }, [goals.currentWeight, goals.targetWeight]);
 
   // Initialize with user data
-  // useEffect(() => {
-  //   loadUserData();
-  //   loadOptions();
-  // }, []);
+  useEffect(() => {
+    loadUserData();
+    loadOptions();
+  }, []);
 
-  // const loadUserData = () => {
-  //   if (user) {
-  //     setGoals({
-  //       currentWeight: user.currentWeightKg?.toString() || '',
-  //       targetWeight: user.targetWeightKg?.toString() || '',
-  //       dailyCalories: calculateDailyCalories().toString(),
-  //       dailyProtein: calculateDailyProtein().toString(),
-  //       dailyCarbs: calculateDailyCarbs().toString(),
-  //       dailyFat: calculateDailyFat().toString(),
-  //       dailyWater: '8', // Default
-  //       weeklyWorkouts: '3', // Default
-  //       activityLevel: user.activityLevel || '',
-  //       fitnessGoal: user.fitnessGoal || '',
-  //     });
-  //   }
-  // };
+  const loadUserData = () => {
+    if (user) {
+      setGoals({
+        currentWeight: user.currentWeightKg?.toString() || '',
+        targetWeight: user.targetWeightKg?.toString() || '',
+        dailyCalories: user.dailyCalories?.toString() || '',
+        dailyProtein: user.dailyProtein?.toString() || calculateDailyProtein().toString(),
+        dailyCarbs: user.dailyCarbs?.toString() || calculateDailyCarbs().toString(),
+        dailyFat: user.dailyFat?.toString() || calculateDailyFat().toString(),
+        dailyWater: user.dailyWater?.toString() || '8', // Default
+        weeklyWorkouts: user.weeklyWorkouts?.toString() || '3', // Default
+        activityLevel: user.activityLevel || '',
+        fitnessGoal: user.fitnessGoal || '',
+      });
+    }
+  };
 
-  // const loadOptions = async () => {
-  //   try {
-  //     const response = await ApiService.authenticatedFetch('/api/users/options');
-  //     const data = await response.json();
-  //     setOptions(data.options);
-  //   } catch (error) {
-  //     console.error('Failed to load options:', error);
-  //   }
-  // };
+  const loadOptions = async () => {
+    try {
+      const response = await ApiService.authenticatedFetch('/api/users/options');
+      const data = await response.json();
+      setOptions(data.options);
+    } catch (error) {
+      console.error('Failed to load options:', error);
+    }
+  };
 
   // Calculate recommended daily values based on user profile
-  // const calculateDailyCalories = () => {
-  //   if (!user?.currentWeightKg || !user?.heightCm || !user?.dateOfBirth) return 2000;
+  const calculateDailyCalories = () => {
+    if (!user?.currentWeightKg || !user?.heightCm || !user?.dateOfBirth) return 2000;
 
-  //   // Basic BMR calculation (Mifflin-St Jeor Equation)
-  //   const age = new Date().getFullYear() - new Date(user.dateOfBirth).getFullYear();
-  //   const weight = user.currentWeightKg;
-  //   const height = user.heightCm;
+    // Basic BMR calculation (Mifflin-St Jeor Equation)
+    const age = new Date().getFullYear() - new Date(user.dateOfBirth).getFullYear();
+    const weight = user.currentWeightKg;
+    const height = user.heightCm;
 
-  //   let bmr;
-  //   if (user.gender === 'MALE') {
-  //     bmr = 10 * weight + 6.25 * height - 5 * age + 5;
-  //   } else {
-  //     bmr = 10 * weight + 6.25 * height - 5 * age - 161;
-  //   }
+    let bmr;
+    if (user.gender === 'MALE') {
+      bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+    } else {
+      bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+    }
 
-  //   // Activity level multiplier
-  //   const activityMultipliers = {
-  //     SEDENTARY: 1.2,
-  //     LIGHTLY_ACTIVE: 1.375,
-  //     MODERATELY_ACTIVE: 1.55,
-  //     VERY_ACTIVE: 1.725,
-  //     EXTREMELY_ACTIVE: 1.9,
-  //   };
+    // Activity level multiplier
+    const activityMultipliers = {
+      SEDENTARY: 1.2,
+      LIGHTLY_ACTIVE: 1.375,
+      MODERATELY_ACTIVE: 1.55,
+      VERY_ACTIVE: 1.725,
+      EXTREMELY_ACTIVE: 1.9,
+    };
 
-  //   const multiplier = activityMultipliers[user.activityLevel as keyof typeof activityMultipliers] || 1.2;
-  //   return Math.round(bmr * multiplier);
-  // };
+    const multiplier = activityMultipliers[user.activityLevel as keyof typeof activityMultipliers] || 1.2;
+    return Math.round(bmr * multiplier);
+  };
 
-  // const calculateDailyProtein = () => {
-  //   if (!user?.currentWeightKg) return 120;
-  //   return Math.round(user.currentWeightKg * 1.6); // 1.6g per kg body weight
-  // };
+  const calculateDailyProtein = () => {
+    if (!user?.currentWeightKg) return 120;
+    return Math.round(user.currentWeightKg * 1.6); // 1.6g per kg body weight
+  };
 
-  // const calculateDailyCarbs = () => {
-  //   const calories = calculateDailyCalories();
-  //   return Math.round((calories * 0.45) / 4); // 45% of calories from carbs
-  // };
+  const calculateDailyCarbs = () => {
+    const calories = calculateDailyCalories();
+    return Math.round((calories * 0.45) / 4); // 45% of calories from carbs
+  };
 
-  // const calculateDailyFat = () => {
-  //   const calories = calculateDailyCalories();
-  //   return Math.round((calories * 0.25) / 9); // 25% of calories from fat
-  // };
+  const calculateDailyFat = () => {
+    const calories = calculateDailyCalories();
+    return Math.round((calories * 0.25) / 9); // 25% of calories from fat
+  };
 
-  //  const handleSave = async () => {
-  //   if (!user) return;
+  const handleSave = async () => {
+    if (!user) return;
 
-  //   setIsSaving(true);
-  //   try {
-  //     // Validate required fields
-  //     if (!goals.currentWeight || !goals.targetWeight) {
-  //       Alert.alert('Error', 'Current weight and target weight are required');
-  //       return;
-  //     }
+    setIsSaving(true);
+    try {
+      // Validate required fields
+      if (!goals.currentWeight || !goals.targetWeight) {
+        Alert.alert('Error', 'Current weight and target weight are required');
+        return;
+      }
 
-  //     // Prepare data for API
-  //     const updateData = {
-  //       currentWeightKg: parseFloat(goals.currentWeight),
-  //       targetWeightKg: parseFloat(goals.targetWeight),
-  //       activityLevel: goals.activityLevel,
-  //       fitnessGoal: goals.fitnessGoal,
-  //     };
+      // Prepare data for API
+      const updateData = {
+        currentWeightKg: parseFloat(goals.currentWeight),
+        targetWeightKg: parseFloat(goals.targetWeight),
+        dailyCalories: goals.dailyCalories,
+        dailyProtein: goals.dailyProtein,
+        dailyCarbs: goals.dailyCarbs,
+        dailyFat: goals.dailyFat,
+        dailyWater: goals.dailyWater,
+        weeklyWorkouts: goals.weeklyWorkouts,
+        activityLevel: goals.activityLevel,
+        fitnessGoal: goals.fitnessGoal,
+      };
 
-  //     // Update user profile via API
-  //     const response = await ApiService.updateUserProfile(user.id, updateData);
+      // Update user profile via API
+      const response = await ApiService.updateUserProfile(user.id, updateData);
 
-  //     if (response.user) {
-  //       // Update local user state
-  //       updateUser(response.user);
+      if (response.user) {
+        // Update local user state
+        updateUser(response.user);
 
-  //       Alert.alert(
-  //         'Success!', 
-  //         'Your goals have been updated successfully',
-  //         [
-  //           {
-  //             text: 'OK',
-  //             onPress: () => router.back(),
-  //           },
-  //         ]
-  //       );
-  //     }
+        Alert.alert(
+          'Success!',
+          'Your goals have been updated successfully',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.back(),
+            },
+          ]
+        );
+      }
 
-  //   } catch (error: any) {
-  //     Alert.alert('Error', error.message || 'Failed to update goals');
-  //   } finally {
-  //     setIsSaving(false);
-  //   }
-  // };
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to update goals');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-  // const handleRecalculate = () => {
-  //   setGoals(prev => ({
-  //     ...prev,
-  //     dailyCalories: calculateDailyCalories().toString(),
-  //     dailyProtein: calculateDailyProtein().toString(),
-  //     dailyCarbs: calculateDailyCarbs().toString(),
-  //     dailyFat: calculateDailyFat().toString(),
-  //   }));
-  //   Alert.alert('Recalculated', 'Daily nutrition goals updated based on your profile');
-  // };
+  const handleRecalculate = () => {
+    setGoals(prev => ({
+      ...prev,
+      dailyCalories: calculateDailyCalories().toString(),
+      dailyProtein: calculateDailyProtein().toString(),
+      dailyCarbs: calculateDailyCarbs().toString(),
+      dailyFat: calculateDailyFat().toString(),
+    }));
+    Alert.alert('Recalculated', 'Daily nutrition goals updated based on your profile');
+  };
 
   const updateGoal = (field: keyof GoalData, value: string) => {
     setGoals(prev => ({ ...prev, [field]: value }));
@@ -300,7 +306,7 @@ const EditGoalPage = () => {
               <Text style={styles.sectionTitle}>🍎 Daily Nutrition</Text>
               <TouchableOpacity
                 style={styles.recalculateButton}
-              // onPress={handleRecalculate}
+                onPress={handleRecalculate}
               >
                 <Text style={styles.recalculateText}>Auto-Calculate</Text>
               </TouchableOpacity>
@@ -438,7 +444,7 @@ const EditGoalPage = () => {
           {/* Save Button */}
           <TouchableOpacity
             style={[styles.saveButton, isSaving && styles.buttonDisabled]}
-            // onPress={handleSave}
+            onPress={handleSave}
             disabled={isSaving}
           >
             {isSaving ? (

@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import * as React from 'react';
 import { View, Text, StyleSheet, Dimensions, PixelRatio, TouchableOpacity } from 'react-native';
+import { useAuthStore } from '@/src/store/authStore';
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
 
@@ -10,13 +11,15 @@ const hp = (percentage: number) => (percentage * height) / 100;
 const rf = (size: number) => size * PixelRatio.getFontScale();
 
 const MyProfilePage = () => {
+    const {user} = useAuthStore();
+
     return (
         <View style={styles.container}>
             {/** Name Section */}
             <View style={styles.nameSection}>
-                <Text style={styles.name}>Test User</Text>
+                <Text style={styles.name}>{user?.username}</Text>
                 <View style={styles.emailContainer}>
-                    <Text style={styles.email}>testuser@example.com</Text>
+                    <Text style={styles.email}>{user?.email}</Text>
                 </View>
             </View>
             <View style={styles.separator} />

@@ -16,6 +16,12 @@ export interface User {
   timezone?: string;
   age?: number;
   bmi?: number;
+  dailyCalories?: number;
+  dailyProtein?: number;
+  dailyCarbs?: number;
+  dailyFat?: number;
+  dailyWater?: number;
+  weeklyWorkouts?: number;
 }
 
 interface AuthState {
@@ -47,6 +53,12 @@ interface RegisterUserData {
   fitnessGoal?: string;
   targetWeightKg?: number;
   preferredUnits?: string;
+  dailyCalories?:number;
+  dailyProtein?:number;
+  dailyCarbs?:number;
+  dailyFat?:number;
+  dailyWater?:number;
+  weeklyWorkouts?:number;
 }
 
 const ACCESS_TOKEN_KEY = 'access_token';
@@ -191,7 +203,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     try {
       const { accessToken } = get();
-      
+
       // Optional: Call logout endpoint
       if (accessToken) {
         try {

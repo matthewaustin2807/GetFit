@@ -26,8 +26,10 @@ public class UserController {
 
   // Get user profile by ID
   @GetMapping("/{userId}")
-  public ResponseEntity<?> getUserProfile(@PathVariable Long userId,
-                                          @RequestHeader(value = "Authorization", required = false) String authHeader) {
+  public ResponseEntity<?> getUserProfile(
+      @PathVariable Long userId,
+      @RequestHeader(value = "Authorization", required = false) String authHeader
+  ) {
     try {
       // Optional: Verify user can only access their own profile
       if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -49,9 +51,11 @@ public class UserController {
 
   // Update user profile
   @PutMapping("/{userId}")
-  public ResponseEntity<?> updateUserProfile(@PathVariable Long userId,
-                                             @RequestBody Map<String, Object> request,
-                                             @RequestHeader(value = "Authorization", required = false) String authHeader) {
+  public ResponseEntity<?> updateUserProfile(
+      @PathVariable Long userId,
+      @RequestBody Map<String, Object> request,
+      @RequestHeader(value = "Authorization", required = false) String authHeader
+  ) {
     try {
       // Verify user can only update their own profile
       if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -70,12 +74,19 @@ public class UserController {
       String activityLevel = (String) request.get("activityLevel");
       String fitnessGoal = (String) request.get("fitnessGoal");
       Double targetWeightKg = parseDouble(request.get("targetWeightKg"));
+      Integer dailyCalories = parseInteger(request.get("dailyCalories"));
+      Integer dailyProtein = parseInteger(request.get("dailyProtein"));
+      Integer dailyCarbs = parseInteger(request.get("dailyCarbs"));
+      Integer dailyFat = parseInteger(request.get("dailyFat"));
+      Integer dailyWater = parseInteger(request.get("dailyWater"));
+      Integer weeklyWorkouts = parseInteger(request.get("weeklyWorkouts"));
       String preferredUnits = (String) request.get("preferredUnits");
       String timezone = (String) request.get("timezone");
 
       User user = authService.updateUserProfile(
           userId, name, heightCm, currentWeightKg, gender,
-          activityLevel, fitnessGoal, targetWeightKg, preferredUnits, timezone
+          activityLevel, fitnessGoal, targetWeightKg, dailyCalories, dailyProtein, dailyCarbs, dailyFat,
+          dailyWater, weeklyWorkouts, preferredUnits, timezone
       );
 
       return ResponseEntity.ok(createUserResponse("Profile updated successfully", user));
@@ -87,8 +98,10 @@ public class UserController {
 
   // Get user's fitness summary
   @GetMapping("/{userId}/fitness-summary")
-  public ResponseEntity<?> getFitnessSummary(@PathVariable Long userId,
-                                             @RequestHeader(value = "Authorization", required = false) String authHeader) {
+  public ResponseEntity<?> getFitnessSummary(
+      @PathVariable Long userId,
+      @RequestHeader(value = "Authorization", required = false) String authHeader
+  ) {
     try {
       // Verify user can only access their own data
       if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -113,6 +126,12 @@ public class UserController {
       summary.put("bmiCategory", getBMICategory(user.getBMI()));
       summary.put("fitnessGoal", user.getFitnessGoal());
       summary.put("activityLevel", user.getActivityLevel());
+      summary.put("dailyCalories", user.getDailyCalories());
+      summary.put("dailyProtein", user.getDailyProtein());
+      summary.put("dailyCarbs", user.getDailyCarbs());
+      summary.put("dailyFat", user.getDailyFat());
+      summary.put("dailyWater", user.getDailyWater());
+      summary.put("weeklyWorkouts", user.getWeeklyWorkouts());
 
       return ResponseEntity.ok(Map.of(
           "message", "Fitness summary retrieved successfully",
@@ -142,9 +161,11 @@ public class UserController {
 
   // Change password
   @PutMapping("/{userId}/password")
-  public ResponseEntity<?> changePassword(@PathVariable Long userId,
-                                          @RequestBody Map<String, String> request,
-                                          @RequestHeader(value = "Authorization", required = false) String authHeader) {
+  public ResponseEntity<?> changePassword(
+      @PathVariable Long userId,
+      @RequestBody Map<String, String> request,
+      @RequestHeader(value = "Authorization", required = false) String authHeader
+  ) {
     try {
       // Verify user can only change their own password
       if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -182,9 +203,11 @@ public class UserController {
 
   // Delete user account
   @DeleteMapping("/{userId}")
-  public ResponseEntity<?> deleteUser(@PathVariable Long userId,
-                                      @RequestBody Map<String, String> request,
-                                      @RequestHeader(value = "Authorization", required = false) String authHeader) {
+  public ResponseEntity<?> deleteUser(
+      @PathVariable Long userId,
+      @RequestBody Map<String, String> request,
+      @RequestHeader(value = "Authorization", required = false) String authHeader
+  ) {
     try {
       // Verify user can only delete their own account
       if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -225,7 +248,7 @@ public class UserController {
 
     Map<String, Object> userMap = new HashMap<>();
     userMap.put("id", user.getId());
-    userMap.put("name", user.getUsername());
+    userMap.put("username", user.getUsername());
     userMap.put("email", user.getEmail());
     userMap.put("dateOfBirth", user.getDateOfBirth() != null ? user.getDateOfBirth().toString() : null);
     userMap.put("heightCm", user.getHeightCm());
@@ -234,6 +257,12 @@ public class UserController {
     userMap.put("activityLevel", user.getActivityLevel() != null ? user.getActivityLevel().toString() : null);
     userMap.put("fitnessGoal", user.getFitnessGoal() != null ? user.getFitnessGoal().toString() : null);
     userMap.put("targetWeightKg", user.getTargetWeightKg());
+    userMap.put("dailyCalories", user.getDailyCalories());
+    userMap.put("dailyProtein", user.getDailyProtein());
+    userMap.put("dailyCarbs", user.getDailyCarbs());
+    userMap.put("dailyFat", user.getDailyFat());
+    userMap.put("dailyWater", user.getDailyWater());
+    userMap.put("weeklyWorkouts", user.getWeeklyWorkouts());
     userMap.put("preferredUnits", user.getPreferredUnits());
     userMap.put("timezone", user.getTimezone());
     userMap.put("age", user.getAge());

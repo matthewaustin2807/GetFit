@@ -64,6 +64,24 @@ public class User {
   @Column(name = "target_weight_kg")
   private Double targetWeightKg; // Goal weight
 
+  @Column(name = "weekly_workouts")
+  private Integer weeklyWorkouts;
+
+  @Column(name = "daily_calories")
+  private Integer dailyCalories; // Goal weight
+
+  @Column(name = "daily_protein")
+  private Integer dailyProtein;
+
+  @Column(name = "daily_carbs")
+  private Integer dailyCarbs;
+
+  @Column(name = "daily_fat")
+  private Integer dailyFat;
+
+  @Column(name = "daily_water")
+  private Integer dailyWater;
+
   // Preferences
   @Column(name = "preferred_units", length = 10)
   private String preferredUnits; // "METRIC" or "IMPERIAL"
@@ -111,7 +129,8 @@ public class User {
   }
 
   // Constructors
-  public User() {}
+  public User() {
+  }
 
   public User(String username, String email, String password) {
     this.username = username;
@@ -139,56 +158,189 @@ public class User {
   }
 
   // Getters and Setters
-  public Long getId() { return id; }
-  public void setId(Long id) { this.id = id; }
+  public Long getId() {
+    return id;
+  }
 
-  public String getUsername() { return username; }
-  public void setName(String name) { this.username = name; }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-  public String getEmail() { return email; }
-  public void setEmail(String email) { this.email = email; }
+  public String getUsername() {
+    return username;
+  }
 
-  public String getPassword() { return password; }
-  public void setPassword(String password) { this.password = password; }
+  public void setName(String name) {
+    this.username = name;
+  }
 
-  public LocalDate getDateOfBirth() { return dateOfBirth; }
-  public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+  public String getEmail() {
+    return email;
+  }
 
-  public Integer getHeightCm() { return heightCm; }
-  public void setHeightCm(Integer heightCm) { this.heightCm = heightCm; }
+  public void setEmail(String email) {
+    this.email = email;
+  }
 
-  public Double getCurrentWeightKg() { return currentWeightKg; }
-  public void setCurrentWeightKg(Double currentWeightKg) { this.currentWeightKg = currentWeightKg; }
+  public String getPassword() {
+    return password;
+  }
 
-  public Gender getGender() { return gender; }
-  public void setGender(Gender gender) { this.gender = gender; }
+  public void setPassword(String password) {
+    this.password = password;
+  }
 
-  public ActivityLevel getActivityLevel() { return activityLevel; }
-  public void setActivityLevel(ActivityLevel activityLevel) { this.activityLevel = activityLevel; }
+  public LocalDate getDateOfBirth() {
+    return dateOfBirth;
+  }
 
-  public FitnessGoal getFitnessGoal() { return fitnessGoal; }
-  public void setFitnessGoal(FitnessGoal fitnessGoal) { this.fitnessGoal = fitnessGoal; }
+  public void setDateOfBirth(LocalDate dateOfBirth) {
+    this.dateOfBirth = dateOfBirth;
+  }
 
-  public Double getTargetWeightKg() { return targetWeightKg; }
-  public void setTargetWeightKg(Double targetWeightKg) { this.targetWeightKg = targetWeightKg; }
+  public Integer getHeightCm() {
+    return heightCm;
+  }
 
-  public String getPreferredUnits() { return preferredUnits; }
-  public void setPreferredUnits(String preferredUnits) { this.preferredUnits = preferredUnits; }
+  public void setHeightCm(Integer heightCm) {
+    this.heightCm = heightCm;
+  }
 
-  public String getTimezone() { return timezone; }
-  public void setTimezone(String timezone) { this.timezone = timezone; }
+  public Double getCurrentWeightKg() {
+    return currentWeightKg;
+  }
 
-  public Boolean getIsVerified() { return isVerified; }
-  public void setIsVerified(Boolean isVerified) { this.isVerified = isVerified; }
+  public void setCurrentWeightKg(Double currentWeightKg) {
+    this.currentWeightKg = currentWeightKg;
+  }
 
-  public Boolean getIsActive() { return isActive; }
-  public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+  public Gender getGender() {
+    return gender;
+  }
 
-  public LocalDateTime getCreatedAt() { return createdAt; }
-  public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+  public void setGender(Gender gender) {
+    this.gender = gender;
+  }
 
-  public LocalDateTime getUpdatedAt() { return updatedAt; }
-  public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+  public ActivityLevel getActivityLevel() {
+    return activityLevel;
+  }
+
+  public void setActivityLevel(ActivityLevel activityLevel) {
+    this.activityLevel = activityLevel;
+  }
+
+  public FitnessGoal getFitnessGoal() {
+    return fitnessGoal;
+  }
+
+  public void setFitnessGoal(FitnessGoal fitnessGoal) {
+    this.fitnessGoal = fitnessGoal;
+  }
+
+  public Double getTargetWeightKg() {
+    return targetWeightKg;
+  }
+
+  public void setTargetWeightKg(Double targetWeightKg) {
+    this.targetWeightKg = targetWeightKg;
+  }
+
+  public Integer getWeeklyWorkouts() {
+    return weeklyWorkouts;
+  }
+
+  public void setWeeklyWorkouts(Integer weeklyWorkouts) {
+    this.weeklyWorkouts = weeklyWorkouts;
+  }
+
+  public Integer getDailyCalories() {
+    return dailyCalories;
+  }
+
+  public void setDailyCalories(Integer dailyCalories) {
+    this.dailyCalories = dailyCalories;
+  }
+
+  public Integer getDailyProtein() {
+    return dailyProtein;
+  }
+
+  public void setDailyProtein(Integer dailyProtein) {
+    this.dailyProtein = dailyProtein;
+  }
+
+  public Integer getDailyCarbs() {
+    return dailyCarbs;
+  }
+
+  public void setDailyCarbs(Integer dailyCarbs) {
+    this.dailyCarbs = dailyCarbs;
+  }
+
+  public Integer getDailyFat() {
+    return dailyFat;
+  }
+
+  public void setDailyFat(Integer dailyFat) {
+    this.dailyFat = dailyFat;
+  }
+
+  public Integer getDailyWater() {
+    return dailyWater;
+  }
+
+  public void setDailyWater(Integer dailyWater) {
+    this.dailyWater = dailyWater;
+  }
+
+  public String getPreferredUnits() {
+    return preferredUnits;
+  }
+
+  public void setPreferredUnits(String preferredUnits) {
+    this.preferredUnits = preferredUnits;
+  }
+
+  public String getTimezone() {
+    return timezone;
+  }
+
+  public void setTimezone(String timezone) {
+    this.timezone = timezone;
+  }
+
+  public Boolean getIsVerified() {
+    return isVerified;
+  }
+
+  public void setIsVerified(Boolean isVerified) {
+    this.isVerified = isVerified;
+  }
+
+  public Boolean getIsActive() {
+    return isActive;
+  }
+
+  public void setIsActive(Boolean isActive) {
+    this.isActive = isActive;
+  }
+
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public void setUpdatedAt(LocalDateTime updatedAt) {
+    this.updatedAt = updatedAt;
+  }
 
   // Helper methods
   public int getAge() {
@@ -228,6 +380,14 @@ public class User {
         ", gender=" + gender +
         ", activityLevel=" + activityLevel +
         ", fitnessGoal=" + fitnessGoal +
+        ", targetWeightKg=" + targetWeightKg +
+        ", weeklyWorkouts=" + weeklyWorkouts +
+        ", dailyCalories=" + dailyCalories +
+        ", dailyProtein=" + dailyProtein +
+        ", dailyCarbs=" + dailyCarbs +
+        ", dailyFat=" + dailyFat +
+        ", dailyWater=" + dailyWater +
+        ", preferredUnits='" + preferredUnits + '\'' +
         ", createdAt=" + createdAt +
         '}';
   }

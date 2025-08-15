@@ -77,9 +77,26 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({ isOpen, onClose }) => {
           text: 'Logout',
           style: 'destructive',
           onPress: async () => {
+            try {
+            // Close drawer immediately to prevent state updates during unmount
             onClose();
-            await logout();
+            
+            // Small delay to let drawer close animation complete
+            setTimeout(async () => {
+              try {
+                await logout();
+                // Navigation will be handled by the auth redirect in _layout or index
+              } catch (error) {
+                console.error('Logout failed:', error);
+                // Force navigation even if logout fails
+                router.replace('/auth/authpage');
+              }
+            }, 300);
+            
+          } catch (error) {
+            console.error('Logout error:', error);
             router.replace('/auth/authpage');
+          }
           },
         },
       ]

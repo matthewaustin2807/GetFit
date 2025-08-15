@@ -5,6 +5,7 @@ import com.fitnessplatform.user_service.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
@@ -41,11 +42,13 @@ public class AuthService {
   }
 
   // Enhanced registration with full profile
-  public User registerUserWithProfile(String username, String email, String password,
-                                      String dateOfBirthString, Integer heightCm,
-                                      Double currentWeightKg, String genderString,
-                                      String activityLevelString, String fitnessGoalString,
-                                      Double targetWeightKg, String preferredUnits) {
+  public User registerUserWithProfile(
+      String username, String email, String password,
+      String dateOfBirthString, Integer heightCm,
+      Double currentWeightKg, String genderString,
+      String activityLevelString, String fitnessGoalString,
+      Double targetWeightKg, String preferredUnits
+  ) {
 
     if (userRepository.existsByEmail(email)) {
       throw new RuntimeException("Email already exists");
@@ -94,10 +97,13 @@ public class AuthService {
   }
 
   // Update user profile
-  public User updateUserProfile(Long userId, String name, Integer heightCm,
-                                Double currentWeightKg, String genderString,
-                                String activityLevelString, String fitnessGoalString,
-                                Double targetWeightKg, String preferredUnits, String timezone) {
+  public User updateUserProfile(
+      Long userId, String name, Integer heightCm,
+      Double currentWeightKg, String genderString,
+      String activityLevelString, String fitnessGoalString,
+      Double targetWeightKg, Integer dailyCalories, Integer dailyProtein, Integer dailyCarbs, Integer dailyFat,
+      Integer dailyWater, Integer weeklyWorkouts, String preferredUnits, String timezone
+  ) {
 
     Optional<User> userOptional = userRepository.findById(userId);
     if (userOptional.isEmpty()) {
@@ -127,6 +133,24 @@ public class AuthService {
     }
     if (targetWeightKg != null && targetWeightKg > 0) {
       user.setTargetWeightKg(targetWeightKg);
+    }
+    if (dailyCalories != null && dailyCalories > 0) {
+      user.setDailyCalories(dailyCalories);
+    }
+    if (dailyProtein != null && dailyProtein > 0) {
+      user.setDailyProtein(dailyProtein);
+    }
+    if (dailyCarbs != null && dailyCarbs > 0) {
+      user.setDailyCarbs(dailyCarbs);
+    }
+    if (dailyFat != null && dailyFat > 0) {
+      user.setDailyFat(dailyFat);
+    }
+    if (dailyWater != null && dailyWater > 0) {
+      user.setDailyWater(dailyWater);
+    }
+    if (weeklyWorkouts != null && weeklyWorkouts >= 0) {
+      user.setWeeklyWorkouts(weeklyWorkouts);
     }
     if (preferredUnits != null) {
       user.setPreferredUnits(preferredUnits);

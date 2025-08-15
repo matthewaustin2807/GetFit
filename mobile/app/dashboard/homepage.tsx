@@ -7,8 +7,8 @@ import { OpenSans_400Regular } from '@expo-google-fonts/open-sans';
 import { Pacifico_400Regular, useFonts } from '@expo-google-fonts/pacifico';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { format } from "date-fns";
-import { Stack } from 'expo-router';
-import React, { useState } from 'react';
+import { router, Stack } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import { Dimensions, PixelRatio, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -23,14 +23,11 @@ const rf = (size: number) => size * PixelRatio.getFontScale();
 const Drawer = createDrawerNavigator();
 
 const HomePage = () => {
-    const { logout, isAuthenticated } = useAuthStore();
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-    const openDrawer = () => setIsDrawerOpen(true);
-    const closeDrawer = () => setIsDrawerOpen(false);
-    // useEffect(() => {
-    //     if (!isAuthenticated) router.replace('/auth/authpage')
-    // }, [isAuthenticated]);
+    const { user, isAuthenticated } = useAuthStore();
+    
+    useEffect(() => {
+        if (!isAuthenticated) router.replace('/auth/authpage')
+    }, [isAuthenticated]);
 
     let [fontsLoaded] = useFonts({
         Pacifico_400Regular,
@@ -137,7 +134,7 @@ const HomePage = () => {
                     {/** Greeting section */}
                     <View style={styles.greetingContainer}>
                         <Text style={styles.greeting}>{getGreeting(currTime)}</Text>
-                        <Text style={styles.username}>Test User</Text>
+                        <Text style={styles.username}>{user?.username}</Text>
                     </View>
                     {/** Date Section */}
                     <View style={styles.dateContainer}>
