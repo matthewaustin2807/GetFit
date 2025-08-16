@@ -1,0 +1,70 @@
+server:
+  port: 8092
+  address: 0.0.0.0
+
+spring:
+  application:
+    name: nutrition-service
+
+  # All spring configs under one "spring" key
+  datasource:
+    url: jdbc:postgresql://localhost:5432/fitness_platform
+    username: fitness_user
+    password: fitness_pass
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 10
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  data:
+    mongodb:
+      uri: mongodb://mongo_user:mongo_pass@localhost:27017/nutrition_db?authSource=admin
+    redis:
+      host: localhost
+      port: 6379
+      password: redis_pass
+
+# Other top-level keys
+jwt:
+  secret: mySecretKey12345678901234567890123456789012345678901234567890
+  expiration: 86400000
+
+services:
+  user-service:
+    url: http://localhost:8091
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+logging:
+  level:
+    com.fitnessplatform.nutrition: DEBUG
+
+# Temporarily disable security
+security:
+  user:
+    name: admin
+    password: admin123
+
+# Controls caching behavior
+food-cache:
+  auto-cache-search-results: true
+  auto-cache-barcode-lookups: true
+
+
+info:
+  app:
+    name: Nutrition Service
+    version: 1.0.0
