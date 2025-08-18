@@ -1,10 +1,8 @@
 package com.fitnessplatform.nutrition_service.controller;
 
-import com.fitnessplatform.nutrition_service.entity.Food;
 import com.fitnessplatform.nutrition_service.entity.FoodNutrition;
 import com.fitnessplatform.nutrition_service.repository.FoodNutritionRepository;
 import com.fitnessplatform.nutrition_service.repository.FoodRepository;
-import com.fitnessplatform.nutrition_service.service.FoodImportService;
 import com.fitnessplatform.nutrition_service.service.FoodSearchService;
 import com.fitnessplatform.nutrition_service.service.OpenFoodFactsService;
 import org.springframework.beans.factory.annotation.Autowired;
