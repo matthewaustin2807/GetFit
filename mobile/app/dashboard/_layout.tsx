@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, Dimensions, PixelRatio } from 'react-native';
-import { Slot, Stack } from 'expo-router';
+import { Slot, Stack, usePathname } from 'expo-router';
 import { BottomTabBar } from '@/src/components/navigation/bottomtabbar';
 import { SideDrawer } from '@/src/components/navigation/sidebar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SmartHeader } from '@/src/components/navigation/smartheader';
+import { DateProvider, useDate } from '@/src/context/dateContext';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -15,11 +16,26 @@ const hp = (percentage: number) => (percentage * height) / 100;
 const rf = (size: number) => size * PixelRatio.getFontScale();
 
 export default function DashboardLayout() {
+    return (
+        <DateProvider>
+            <DashboardLayoutContent />
+        </DateProvider>
+    );
+}
+
+const DashboardLayoutContent = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const { selectedDate, setSelectedDate, displayDate } = useDate();
 
     const openDrawer = () => setIsDrawerOpen(true);
     const closeDrawer = () => setIsDrawerOpen(false);
-    
+    const pathname = usePathname();
+
+    // Determine if current page should show date picker
+    const shouldShowDatePicker = pathname.includes('dashboard/nutrition') ||
+        pathname.includes('/meals') ||
+        pathname.includes('/log-meal');
+
     return (
         <>
             <Stack.Screen options={{ headerShown: false }} />
@@ -27,6 +43,10 @@ export default function DashboardLayout() {
                 <SmartHeader
                     title="Get Fit"
                     onMenuPress={() => setIsDrawerOpen(true)}
+                    showDatePicker={shouldShowDatePicker}
+                    selectedDate={selectedDate}
+                    onDateChange={setSelectedDate}
+                    displayDate={displayDate}
                 />
                 {/* Main content area */}
                 <View style={styles.content}>
@@ -43,9 +63,8 @@ export default function DashboardLayout() {
                 <SideDrawer isOpen={isDrawerOpen} onClose={closeDrawer} />
             </SafeAreaView>
         </>
-
     );
-}
+};
 
 const styles = StyleSheet.create({
     container: {

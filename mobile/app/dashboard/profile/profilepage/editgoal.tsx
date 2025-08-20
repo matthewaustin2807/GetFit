@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { useAuthStore } from '@/src/store/authStore';
-import { ApiService } from '@/src/services/api/authApi';
+import { ApiService } from '@/src/services/auth/authApi';
 
 
 const { width, height } = Dimensions.get('window');

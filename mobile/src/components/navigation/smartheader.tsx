@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   PixelRatio,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { useDate } from '@/src/context/dateContext';
 
 const { width } = Dimensions.get('window');
 const wp = (percentage: number) => (percentage * width) / 100;
@@ -19,6 +21,10 @@ interface SmartHeaderProps {
   onMenuPress: () => void;
   rightComponent?: React.ReactElement;
   backgroundColor?: string;
+  showDatePicker?: boolean;
+  selectedDate?: Date;
+  onDateChange?: (date: Date) => void;
+  displayDate?: string
 }
 
 export const SmartHeader: React.FC<SmartHeaderProps> = ({
@@ -26,13 +32,19 @@ export const SmartHeader: React.FC<SmartHeaderProps> = ({
   onMenuPress,
   rightComponent,
   backgroundColor = '#fff',
+  showDatePicker = false,
+  selectedDate = new Date(),
+  onDateChange,
+  displayDate,
 }) => {
   const pathname = usePathname();
+  const [showPicker, setShowPicker] = useState(false);
+  const {goToNextDay, goToPreviousDay} = useDate();
 
   // Define which routes are "main pages" (show hamburger)
   const mainPages = [
     '/dashboard/homepage',
-    '/nutrition',
+    '/dashboard/nutrition/mealLoggingPage',
     '/dashboard/profile/profilepage',
   ];
 
@@ -52,27 +64,77 @@ export const SmartHeader: React.FC<SmartHeaderProps> = ({
     }
   };
 
-  return (
-    <View style={[styles.header]}>
-      {/* Left Button - Hamburger or Back */}
-      <TouchableOpacity 
-        style={styles.leftButton} 
-        onPress={handleLeftButtonPress}
-      >
-        {isMainPage ? (
-          // Hamburger Menu
-          <Text style={styles.hamburger}>☰</Text>
-        ) : (
-          // Back Button
-          <Text style={styles.backButton}>←</Text>
-        )}
-      </TouchableOpacity>
+  const handleDatePress = () => {
+    if (showDatePicker && onDateChange) {
+      setShowPicker(true);
+    }
+  };
 
-      {/* Right Component (optional) */}
-      <View style={styles.rightSection}>
-        {rightComponent || <View style={styles.headerSpacer} />}
+  const hideDatePicker = () => {
+    setShowPicker(false)
+  };
+
+  const handleConfirm = (date: Date) => {
+    if (onDateChange) {
+      onDateChange(date)
+    }
+    hideDatePicker();
+  };
+
+  return (
+    <>
+      <View style={[styles.header]}>
+        {/* Left Button - Hamburger or Back */}
+        <TouchableOpacity
+          style={styles.leftButton}
+          onPress={handleLeftButtonPress}
+        >
+          {isMainPage ? (
+            // Hamburger Menu
+            <Text style={styles.hamburger}>☰</Text>
+          ) : (
+            // Back Button
+            <Text style={styles.backButton}>←</Text>
+          )}
+        </TouchableOpacity>
+
+        <View style={styles.centerSection}>
+          {showDatePicker ? (
+            <View style={styles.datePickerContainer}>
+              <TouchableOpacity onPress={goToPreviousDay}>
+                <Text>❮</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.datePicker}
+                onPress={handleDatePress}
+              >
+                <Text style={styles.dateText}>{displayDate}</Text>
+                <Text style={[styles.dateIcon]}>🔽</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={goToNextDay}>
+                <Text>❯</Text>
+              </TouchableOpacity>
+            </View>
+
+          ) : (
+            <></>
+          )}
+        </View>
+
+        {/* Right Component (optional) */}
+        <View style={styles.rightSection}>
+          {rightComponent || <View style={styles.headerSpacer} />}
+        </View>
       </View>
-    </View>
+      {showPicker && onDateChange && <DateTimePickerModal
+        isVisible={showPicker}
+        mode="date"
+        onConfirm={handleConfirm}
+        onCancel={hideDatePicker}
+        date={selectedDate}
+      >
+      </DateTimePickerModal>}
+    </>
   );
 };
 
@@ -108,5 +170,30 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: wp(10),
+  },
+  centerSection: {
+    flex: 1,
+    alignItems:'center'
+  },
+  datePickerContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems:'center',
+    maxHeight: hp(5)
+  },
+  datePicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+  },
+  dateText: {
+    fontSize: rf(16),
+    fontWeight: '600',
+    color: '#333',
+    marginRight: wp(2),
+  },
+  dateIcon: {
+    fontSize: rf(16),
   },
 });
