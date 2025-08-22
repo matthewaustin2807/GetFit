@@ -14,7 +14,7 @@ const DailyNutritionSummary = () => {
         <View
             style={styles.nutritionContainer}
         >
-            <Text style={styles.nutritionTitle}>Nutrition Remaining</Text>
+            <Text style={styles.nutritionTitle}>Nutrients Today</Text>
             <View
                 style={styles.macronutrientsContainer}
             >

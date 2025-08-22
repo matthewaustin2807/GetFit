@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/foods")
@@ -49,15 +50,32 @@ public class FoodController {
     }
   }
 
-  // NEW: Enhanced barcode lookup (local + API)
+  /**
+   * Search food by barcode
+   * GET /api/foods/barcode/1234567890123
+   */
   @GetMapping("/barcode/{barcode}")
-  public ResponseEntity<?> getFoodByBarcode(@PathVariable String barcode) {
+  public ResponseEntity<?> searchByBarcode(@PathVariable String barcode) {
     try {
-      Map<String, Object> result = foodSearchService.getFoodByBarcode(barcode);
-      return ResponseEntity.ok(result);
+      if (barcode == null || barcode.trim().isEmpty()) {
+        return ResponseEntity.badRequest().body(Map.of(
+            "error", "Barcode is required",
+            "example", "Try: /api/foods/barcode/1234567890123"
+        ));
+      }
+
+      Map<String, Object> result = foodSearchService.searchByBarcode(barcode.trim());
+
+      if ((Boolean) result.getOrDefault("found", false)) {
+        return ResponseEntity.ok(result);
+      } else {
+        return ResponseEntity.notFound().build();
+      }
 
     } catch (Exception e) {
-      return ResponseEntity.notFound().build();
+      return ResponseEntity.badRequest().body(Map.of(
+          "error", "Barcode search failed: " + e.getMessage()
+      ));
     }
   }
 
