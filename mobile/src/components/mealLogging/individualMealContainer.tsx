@@ -1,5 +1,6 @@
 import { Alert, Dimensions, PixelRatio, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
+import { router } from 'expo-router';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -18,10 +19,30 @@ const IndividualMealContainer: React.FC<IndividualMealContainerProps> = ({
     text,
     type
 }) => {
+
+    const handleAddFoodPress = () => {
+        // Convert your meal types to lowercase for consistency
+        const mealTypeMapping: { [key: string]: string } = {
+            'BREAKFAST': 'breakfast',
+            'LUNCH': 'lunch',
+            'DINNER': 'dinner',
+            'SNACK': 'snack',
+            'OTHER': 'others'
+        };
+
+        const selectedType = mealTypeMapping[type] || 'others';
+
+        // Navigate with meal type as parameter
+        router.push({
+            pathname: '/dashboard/nutrition/mealSearchPage',
+            params: { mealType: selectedType }
+        });
+    };
+    
     return (
         <View key={type} style={styles.individualMealContainer}>
             <Text style={styles.mealText}>{text}</Text>
-            <TouchableOpacity onPress={() => Alert.alert('pressed')}>
+            <TouchableOpacity onPress={handleAddFoodPress}>
                 <Text style={styles.addFoodLink}>Add Food</Text>
             </TouchableOpacity>
         </View>

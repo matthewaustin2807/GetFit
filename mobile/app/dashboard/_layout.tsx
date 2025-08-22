@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, Dimensions, PixelRatio } from 'react-native';
-import { Slot, Stack, usePathname } from 'expo-router';
+import { Slot, Stack, useLocalSearchParams, usePathname } from 'expo-router';
 import { BottomTabBar } from '@/src/components/navigation/bottomtabbar';
 import { SideDrawer } from '@/src/components/navigation/sidebar';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -27,14 +27,32 @@ const DashboardLayoutContent = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const { selectedDate, setSelectedDate, displayDate } = useDate();
 
+    const { mealType } = useLocalSearchParams<{ mealType: string }>();
+    const [selectedMealType, setSelectedMealType] = useState(mealType || 'breakfast');
+
+    const handleMealTypeChange = (newMealType: string) => {
+        setSelectedMealType(newMealType);
+        console.log('Changed meal type to:', newMealType);
+    };
+
+    // Update selected meal type when navigation parameter changes
+    React.useEffect(() => {
+        if (mealType) {
+            setSelectedMealType(mealType);
+        }
+    }, [mealType]);
+
+
     const openDrawer = () => setIsDrawerOpen(true);
     const closeDrawer = () => setIsDrawerOpen(false);
     const pathname = usePathname();
 
     // Determine if current page should show date picker
-    const shouldShowDatePicker = pathname.includes('dashboard/nutrition') ||
+    const shouldShowDatePicker = pathname.includes('dashboard/nutrition/mealLoggingPage') ||
         pathname.includes('/meals') ||
         pathname.includes('/log-meal');
+
+    const shouldShowMealPicker = pathname.includes('dashboard/nutrition/mealSearchPage')
 
     return (
         <>
@@ -44,9 +62,12 @@ const DashboardLayoutContent = () => {
                     title="Get Fit"
                     onMenuPress={() => setIsDrawerOpen(true)}
                     showDatePicker={shouldShowDatePicker}
+                    showMealPicker={shouldShowMealPicker}
                     selectedDate={selectedDate}
                     onDateChange={setSelectedDate}
                     displayDate={displayDate}
+                    selectedMealType={selectedMealType}
+                    onMealTypeChange={handleMealTypeChange}
                 />
                 {/* Main content area */}
                 <View style={styles.content}>

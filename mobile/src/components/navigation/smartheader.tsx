@@ -22,9 +22,12 @@ interface SmartHeaderProps {
   rightComponent?: React.ReactElement;
   backgroundColor?: string;
   showDatePicker?: boolean;
+  showMealPicker?: boolean;
   selectedDate?: Date;
   onDateChange?: (date: Date) => void;
   displayDate?: string
+  selectedMealType?: string;
+  onMealTypeChange?: (mealType: string) => void;
 }
 
 export const SmartHeader: React.FC<SmartHeaderProps> = ({
@@ -33,13 +36,37 @@ export const SmartHeader: React.FC<SmartHeaderProps> = ({
   rightComponent,
   backgroundColor = '#fff',
   showDatePicker = false,
+  showMealPicker = false,
   selectedDate = new Date(),
   onDateChange,
   displayDate,
+  selectedMealType,
+  onMealTypeChange
 }) => {
   const pathname = usePathname();
-  const [showPicker, setShowPicker] = useState(false);
-  const {goToNextDay, goToPreviousDay} = useDate();
+  const [showPicker, setShowPicker] = useState(false)
+  const [showMealDropdown, setShowMealDropdown] = useState(false);
+  const { goToNextDay, goToPreviousDay } = useDate();
+
+  // NEW: Meal types
+  const mealTypes = [
+    { value: 'breakfast', label: 'Breakfast'},
+    { value: 'lunch', label: 'Lunch'},
+    { value: 'dinner', label: 'Dinner' },
+    { value: 'snack', label: 'Snack'},
+    { value: 'others', label: 'Others'},
+  ];
+
+  const getCurrentMealType = () => {
+    return mealTypes.find(meal => meal.value === selectedMealType) || mealTypes[0];
+  };
+
+  const handleMealTypeSelect = (mealType: string) => {
+    if (onMealTypeChange) {
+      onMealTypeChange(mealType);
+    }
+    setShowMealDropdown(false);
+  };
 
   // Define which routes are "main pages" (show hamburger)
   const mainPages = [
@@ -115,10 +142,42 @@ export const SmartHeader: React.FC<SmartHeaderProps> = ({
                 <Text>❯</Text>
               </TouchableOpacity>
             </View>
+          ) : showMealPicker ? (
+            // Simple meal picker dropdown
+            <View style={styles.mealPickerContainer}>
+              <TouchableOpacity
+                style={styles.mealPicker}
+                onPress={() => setShowMealDropdown(!showMealDropdown)}
+              >
+                <Text style={styles.mealText}>
+                  {selectedMealType!.charAt(0).toUpperCase() + selectedMealType!.slice(1)}
+                </Text>
+                <Text style={styles.dropdownIcon}>🔽</Text>
+              </TouchableOpacity>
 
+              {showMealDropdown && (
+                <View style={styles.mealDropdown}>
+                  {['breakfast', 'lunch', 'dinner', 'snack', 'others'].map((meal) => (
+                    <TouchableOpacity
+                      key={meal}
+                      style={styles.mealOption}
+                      onPress={() => {
+                        onMealTypeChange?.(meal);
+                        setShowMealDropdown(false);
+                      }}
+                    >
+                      <Text style={styles.mealOptionText}>
+                        {meal.charAt(0).toUpperCase() + meal.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
           ) : (
             <></>
-          )}
+          )
+          }
         </View>
 
         {/* Right Component (optional) */}
@@ -166,19 +225,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   rightSection: {
-    minWidth: wp(10), // Ensures title stays centered
+    minWidth: wp(16),
+    alignItems: 'flex-end',
   },
   headerSpacer: {
-    width: wp(10),
+    width: wp(15),
   },
   centerSection: {
     flex: 1,
-    alignItems:'center'
+    alignItems: 'center',
   },
   datePickerContainer: {
     flex: 1,
     flexDirection: 'row',
-    alignItems:'center',
+    alignItems: 'center',
     maxHeight: hp(5)
   },
   datePicker: {
@@ -195,5 +255,57 @@ const styles = StyleSheet.create({
   },
   dateIcon: {
     fontSize: rf(16),
+  },
+  mealPickerContainer: {
+
+  },
+  mealPicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1),
+    backgroundColor: 'transparent',
+  },
+  mealText: {
+    fontSize: rf(16),
+    fontWeight: '600',
+    color: '#333',
+    marginRight: wp(2),
+  },
+  dropdownIcon: {
+    fontSize: rf(12),
+    color: '#666',
+  },
+  mealDropdown: {
+    position: 'absolute',
+    top: hp(6),
+    left: 0,
+    right: 0,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    zIndex: 1000,
+    marginHorizontal: wp(2),
+  },
+  mealOption: {
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.5),
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  mealOptionText: {
+    fontSize: rf(16),
+    color: '#333',
+  },
+  selectedMealOption: {
+    backgroundColor: '#e3f2fd',
+  },
+  selectedMealOptionText: {
+    color: '#1976d2',
+    fontWeight: '600',
   },
 });

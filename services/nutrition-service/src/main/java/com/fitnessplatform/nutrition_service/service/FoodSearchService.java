@@ -252,7 +252,7 @@ public class FoodSearchService {
     try {
       // Extract basic food info (for Food entity)
       String name = getStringValue(hit, "product_name");
-      String brand = getStringValue(hit, "brands");
+      String brand = cleanBrandName(hit.get("brands"));
       String barcode = getStringValue(hit, "code");
 
       if (name == null || name.trim().isEmpty()) {
@@ -346,23 +346,52 @@ public class FoodSearchService {
     return savedFood;
   }
 
-  public Map<String, Object> getFoodByBarcode(String barcode) {
-    // 1. Check local database first
-    Optional<Food> localFood = foodRepository.findByBarcode(barcode);
-    if (localFood.isPresent()) {
-      Optional<FoodNutrition> nutrition = nutritionRepository.findByFoodId(localFood.get().getId());
-      Map<String, Object> foodData = createFoodResponse(localFood.get(), nutrition.orElse(null));
-      foodData.put("source", "local");
-      foodData.put("available_offline", true);
-      return foodData;
+  @SuppressWarnings("unchecked")
+  private String cleanBrandName(Object brandValue) {
+    if (brandValue == null) {
+      return null;
     }
 
-    // 2. Search Open Food Facts API with rate limiting
     try {
-      enforceRateLimit(PRODUCT_RATE_LIMIT, lastProductRequest);
-      return getFoodFromOpenFoodFacts(barcode);
+      String brandStr;
+
+      // Handle if it comes as a List (JSON array)
+      if (brandValue instanceof List) {
+        List<Object> brandList = (List<Object>) brandValue;
+        if (brandList.isEmpty()) {
+          return null;
+        }
+        // Take the first brand from the list
+        brandStr = brandList.get(0).toString();
+      } else {
+        brandStr = brandValue.toString();
+      }
+
+      // Clean the string
+      brandStr = brandStr.trim();
+
+      // Remove square brackets
+      if (brandStr.startsWith("[") && brandStr.endsWith("]")) {
+        brandStr = brandStr.substring(1, brandStr.length() - 1);
+      }
+
+      // Remove quotes
+      brandStr = brandStr.replace("\"", "").replace("'", "");
+
+      // Handle comma-separated brands - take first one
+      if (brandStr.contains(",")) {
+        brandStr = brandStr.split(",")[0].trim();
+      }
+
+      // Remove extra whitespace and line breaks
+      brandStr = brandStr.replaceAll("\\s+", " ").trim();
+
+      // Return null if empty after cleaning
+      return brandStr.isEmpty() ? null : brandStr;
+
     } catch (Exception e) {
-      throw new RuntimeException("Food not found: " + barcode + " - " + e.getMessage());
+      System.out.println("Error cleaning brand name: " + e.getMessage());
+      return brandValue.toString().trim();
     }
   }
 
