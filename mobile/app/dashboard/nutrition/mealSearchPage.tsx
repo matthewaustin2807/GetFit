@@ -112,7 +112,7 @@ const MealSearchPage = () => {
         {foods.length > 0 && (
           <View>
             {foods.map((food: FoodItem, index: number) => (
-              <IndividualFoodOption key={food.id} item={food} />
+              <IndividualFoodOption key={index} item={food} />
             ))}
           </View>
         )}
