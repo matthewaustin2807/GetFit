@@ -50,11 +50,11 @@ export const SmartHeader: React.FC<SmartHeaderProps> = ({
 
   // NEW: Meal types
   const mealTypes = [
-    { value: 'breakfast', label: 'Breakfast'},
-    { value: 'lunch', label: 'Lunch'},
+    { value: 'breakfast', label: 'Breakfast' },
+    { value: 'lunch', label: 'Lunch' },
     { value: 'dinner', label: 'Dinner' },
-    { value: 'snack', label: 'Snack'},
-    { value: 'others', label: 'Others'},
+    { value: 'snack', label: 'Snack' },
+    { value: 'others', label: 'Others' },
   ];
 
   const getCurrentMealType = () => {
@@ -225,11 +225,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   rightSection: {
-    minWidth: wp(16),
+    minWidth: wp(8),
     alignItems: 'flex-end',
   },
   headerSpacer: {
-    width: wp(15),
+    width: wp(10),
+    marginLeft: wp(-3),
   },
   centerSection: {
     flex: 1,
@@ -257,7 +258,7 @@ const styles = StyleSheet.create({
     fontSize: rf(16),
   },
   mealPickerContainer: {
-
+    minWidth: wp(32),
   },
   mealPicker: {
     flexDirection: 'row',
@@ -281,6 +282,7 @@ const styles = StyleSheet.create({
     top: hp(6),
     left: 0,
     right: 0,
+    minWidth: wp(24),
     backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',

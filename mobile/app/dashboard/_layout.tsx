@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, Dimensions, PixelRatio } from 'react-native';
-import { Slot, Stack, useLocalSearchParams, usePathname } from 'expo-router';
 import { BottomTabBar } from '@/src/components/navigation/bottomtabbar';
 import { SideDrawer } from '@/src/components/navigation/sidebar';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { SmartHeader } from '@/src/components/navigation/smartheader';
 import { DateProvider, useDate } from '@/src/context/dateContext';
+import { MealTypeProvider, useMealType } from '@/src/context/mealTypeContext';
+import { Slot, Stack, useLocalSearchParams, usePathname } from 'expo-router';
+import React, { useState } from 'react';
+import { Dimensions, PixelRatio, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -17,31 +18,19 @@ const rf = (size: number) => size * PixelRatio.getFontScale();
 
 export default function DashboardLayout() {
     return (
-        <DateProvider>
-            <DashboardLayoutContent />
-        </DateProvider>
+        <MealTypeProvider>
+            <DateProvider>
+                <DashboardLayoutContent />
+            </DateProvider>
+        </MealTypeProvider>
+
     );
 }
 
 const DashboardLayoutContent = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const { selectedDate, setSelectedDate, displayDate } = useDate();
-
-    const { mealType } = useLocalSearchParams<{ mealType: string }>();
-    const [selectedMealType, setSelectedMealType] = useState(mealType || 'breakfast');
-
-    const handleMealTypeChange = (newMealType: string) => {
-        setSelectedMealType(newMealType);
-        console.log('Changed meal type to:', newMealType);
-    };
-
-    // Update selected meal type when navigation parameter changes
-    React.useEffect(() => {
-        if (mealType) {
-            setSelectedMealType(mealType);
-        }
-    }, [mealType]);
-
+    const { selectedMealType, setSelectedMealType } = useMealType();
 
     const openDrawer = () => setIsDrawerOpen(true);
     const closeDrawer = () => setIsDrawerOpen(false);
@@ -52,6 +41,7 @@ const DashboardLayoutContent = () => {
         pathname.includes('/meals') ||
         pathname.includes('/log-meal');
 
+    // Pages to show meal type
     const shouldShowMealPicker = pathname.includes('dashboard/nutrition/mealSearchPage')
 
     return (
@@ -67,7 +57,7 @@ const DashboardLayoutContent = () => {
                     onDateChange={setSelectedDate}
                     displayDate={displayDate}
                     selectedMealType={selectedMealType}
-                    onMealTypeChange={handleMealTypeChange}
+                    onMealTypeChange={setSelectedMealType}
                 />
                 {/* Main content area */}
                 <View style={styles.content}>

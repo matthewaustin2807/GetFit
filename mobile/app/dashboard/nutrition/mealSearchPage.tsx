@@ -1,10 +1,10 @@
-import { Dimensions, PixelRatio, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useState } from 'react'
-import { Icon, SearchBar } from '@rneui/base'
 import IndividualFoodOption from '@/src/components/mealLogging/individualFoodOption';
-import { FoodItem, FoodSearchResponse } from '@/src/types/nutrition'
+import { useMealType} from '@/src/context/mealTypeContext';
 import { NutritionApiService } from '@/src/services/nutrition/nutritionApi';
-import { useLocalSearchParams } from 'expo-router';
+import { FoodItem, FoodSearchResponse } from '@/src/types/nutrition';
+import { Icon, SearchBar } from '@rneui/base';
+import React, { useState } from 'react';
+import { Dimensions, PixelRatio, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 
 // Get screen dimensions
@@ -22,6 +22,8 @@ const MealSearchPage = () => {
   const [searchMode, setSearchMode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<FoodSearchResponse | null>(null);
+
+  const { selectedMealType } = useMealType();
 
   const handleSubmit = async () => {
     // Empty Search
@@ -74,7 +76,7 @@ const MealSearchPage = () => {
           autoCapitalize='none'
         />
       </View>
-      
+
       <View style={styles.searchOptionsContainer}>
         <TouchableOpacity style={styles.searchOptionContainer}>
           <Icon

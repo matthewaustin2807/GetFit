@@ -31,7 +31,7 @@ const mealTimes = [
     },
     {
         text: 'Other',
-        type: 'Other'
+        type: 'OTHER'
     }
 ]
 
