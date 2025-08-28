@@ -4,8 +4,6 @@ export interface Food {
   name: string;
   brand?: string;
   barcode?: string;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface Nutrition {
@@ -57,14 +55,6 @@ export interface ApiError {
   example?: string;
 }
 
-// Meal-related types (for your existing methods)
-export interface Meal {
-  id: number;
-  userId: number;
-  date: string;
-  // Add other meal properties as needed
-}
-
 export interface NutritionSummary {
   totalCalories: number;
   totalProtein: number;
@@ -109,4 +99,22 @@ export interface LogMealResponse {
 export interface DeleteMealResponse {
     message: string;
     entryId: number;
+}
+
+export interface UserMealSummary {
+  message: string;
+  date: string;
+  userId: number;
+  mealCount: number;
+  meals: Meal[]
+}
+
+export interface Meal {
+  nutrition: Nutrition;
+  notes?: string;
+  quantityGrams: number;
+  loggedAt: Date;
+  mealType: string;
+  foodId: number;
+  food: Food
 }

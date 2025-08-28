@@ -3,11 +3,11 @@ import React, { useRef, useState } from 'react'
 import { Icon } from '@rneui/base'
 import { useMealType } from '@/src/context/mealTypeContext';
 import { User } from '@/src/store/authStore';
-import NutritionImpactCard from '@/src/components/mealLogging/foodDetail/nutritionImpactCard';
+import NutritionImpactCard from '@/src/components/mealLogging/foodDetailComponents/nutritionImpactCard';
 import { FoodItem } from '@/src/types/nutrition';
 import { router, useLocalSearchParams } from 'expo-router';
-import ServingOptionsCard from '@/src/components/mealLogging/foodDetail/servingOptionsCard';
-import MacroDetailsContainer from '@/src/components/mealLogging/foodDetail/macroDetailsContainer';
+import ServingOptionsCard from '@/src/components/mealLogging/foodDetailComponents/servingOptionsCard';
+import MacroDetailsContainer from '@/src/components/mealLogging/foodDetailComponents/macroDetailsContainer';
 import { NutritionApiService } from '@/src/services/nutrition/nutritionApi';
 
 // Get screen dimensions

@@ -1,4 +1,4 @@
-import IndividualFoodOption from '@/src/components/mealLogging/individualFoodOption';
+import IndividualFoodOption from '@/src/components/mealLogging/mealSearchComponents/individualFoodOption';
 import { useMealType} from '@/src/context/mealTypeContext';
 import { NutritionApiService } from '@/src/services/nutrition/nutritionApi';
 import { FoodItem, FoodSearchResponse } from '@/src/types/nutrition';

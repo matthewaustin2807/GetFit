@@ -7,7 +7,8 @@ import {
     ApiError,
     LogMealRequest,
     LogMealResponse,
-    DeleteMealResponse
+    DeleteMealResponse,
+    UserMealSummary
 } from '../../types/nutrition';
 
 const API_BASE_URL = 'http://10.0.0.208:8092';
@@ -72,14 +73,14 @@ export class NutritionApiService {
     }
 
     // Typed meal methods
-    static async getTodayMeals(userId: number): Promise<Meal[]> {
+    static async getTodayMeals(userId: number): Promise<UserMealSummary> {
         const response = await this.authenticatedFetch(`/api/meals/today?userId=${userId}`);
-        return response.json() as Promise<Meal[]>;
+        return response.json() as Promise<UserMealSummary>;
     }
 
-    static async getMealsByDate(userId: number, date: string): Promise<Meal[]> {
-        const response = await this.authenticatedFetch(`/api/meals/${date}?userId=${userId}`);
-        return response.json() as Promise<Meal[]>;
+    static async getMealsByDate(userId: number, date: string): Promise<UserMealSummary> {
+        const response = await this.authenticatedFetch(`/api/meals/date/${date}?userId=${userId}`);
+        return response.json() as Promise<UserMealSummary>;
     }
 
     static async getTodayNutritionSummary(userId: number): Promise<NutritionSummary> {
