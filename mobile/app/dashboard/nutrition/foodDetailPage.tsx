@@ -2,6 +2,13 @@ import { Alert, Dimensions, Modal, PixelRatio, ScrollView, StyleSheet, Text, Tex
 import React, { useRef, useState } from 'react'
 import { Icon } from '@rneui/base'
 import { useMealType } from '@/src/context/mealTypeContext';
+import { User } from '@/src/store/authStore';
+import NutritionImpactCard from '@/src/components/mealLogging/foodDetail/nutritionImpactCard';
+import { FoodItem } from '@/src/types/nutrition';
+import { router, useLocalSearchParams } from 'expo-router';
+import ServingOptionsCard from '@/src/components/mealLogging/foodDetail/servingOptionsCard';
+import MacroDetailsContainer from '@/src/components/mealLogging/foodDetail/macroDetailsContainer';
+import { NutritionApiService } from '@/src/services/nutrition/nutritionApi';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -11,130 +18,78 @@ const wp = (percentage: number) => (percentage * width) / 100;
 const hp = (percentage: number) => (percentage * height) / 100;
 const rf = (size: number) => size * PixelRatio.getFontScale();
 
-const mockFood = {
+const mockUser: User = {
     id: 1,
-    name: 'Apple',
-    brand: 'fuji',
-    barcode: '1234',
-    nutrition: {
-        calories: 20,
-        protein: 20,
-        carbs: 20,
-        fat: 20,
-        fiber: 20,
-        sugar: 20,
-        sodium: 1220,
-        unit: '100g'
-    },
-    hasNutrition: true,
-    nutriscore_grade: 'A'
+    username: 'a',
+    email: 'a',
+    dailyCalories: 1770,
+    dailyCarbs: 225,
+    dailyFat: 56,
+    dailyProtein: 120,
 }
 
-const FoodDetailPage = () => {
-    const { selectedMealType, setSelectedMealType } = useMealType();
-    const [showMealDropdown, setShowMealDropdown] = useState(false);
-    const [mealTypeInputLayout, setMealTypeInputLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
+interface FoodDetailPageProps {
+    user?: User
+}
 
-    const buttonRef = useRef<any>(null);
+const FoodDetailPage: React.FC<FoodDetailPageProps> = ({
+    user
+}) => {
+    const { foodData } = useLocalSearchParams();
+    const { selectedMealType } = useMealType();
+    const [numberOfServings, setNumberOfServings] = useState(1);
 
-    const measureButtonPosition = () => {
-        buttonRef.current?.measureInWindow((x: number, y: number, width: number, height: number) => {
-            setMealTypeInputLayout({ x, y, width, height });
-        });
+    const handleServingChange = (servings: number) => {
+        setNumberOfServings(servings);
     };
+
+    // Parse the serialized food data
+    const food: FoodItem = JSON.parse(foodData as string);
+
+    const logFood = async () => {
+        try {
+            const logRequest = {
+                userId: 3,
+                foodId: food.id!,
+                quantityGrams: 100 * numberOfServings, // Convert servings to grams
+                mealType: selectedMealType.toUpperCase() as 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER',
+                notes: '' // Optional
+            };
+
+            const result = await NutritionApiService.logMeal(logRequest);
+
+            // Show success message or navigate back
+            Alert.alert('Success', 'Meal logged successfully!');
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to log meal';
+            Alert.alert('Error', errorMessage);
+        } finally {
+            router.replace('/dashboard/nutrition/mealLoggingPage');
+        }
+    }
 
     return (
         <ScrollView>
             <View style={styles.foodNameContainer}>
-                <Text style={styles.foodNameText}>{mockFood.name}</Text>
-                <TouchableOpacity style={styles.addFoodButton}>
+                <View style={styles.nameAndBrandContainer}>
+                    <Text style={styles.foodNameText}>{food.name}</Text>
+                    <Text style={styles.foodBrandText}>{food.brand}</Text>
+                </View>
+                <TouchableOpacity
+                    style={styles.addFoodButton}
+                    onPress={logFood}>
                     <Icon
-                        name='checkmark-circle-outline'
+                        name='add-circle-outline'
                         type='ionicon'
-                        size={32}
-                        color={'lightblue'}
+                        size={36}
+                        color={'#4a5568'}
                     />
                 </TouchableOpacity>
             </View>
-            <View style={styles.servingOptionContainer}>
-                <View style={styles.servingOption}>
-                    <Text style={styles.servingOptionText}>Serving Size</Text>
-                    <TextInput
-                        style={styles.servingOptionInput}
-                        inputMode='decimal'
-                        keyboardType='decimal-pad'
-                        defaultValue='1'
-                        textAlign='right'
-                    />
-                </View>
-                <View style={styles.servingOption}>
-                    <Text style={styles.servingOptionText}>Number of Servings</Text>
-                    <TextInput
-                        style={styles.servingOptionInput}
-                        inputMode='decimal'
-                        keyboardType='decimal-pad'
-                        defaultValue='1'
-                        textAlign='right'
-                    />
-                </View>
-                <View style={styles.servingOption}>
-                    <Text style={styles.servingOptionText}>Meal</Text>
-                    <View style={styles.mealPickerContainer}>
-                        <TouchableOpacity
-                            ref={buttonRef}
-                            style={styles.servingOptionInput}
-                            onPress={() => {
-                                measureButtonPosition();
-                                setShowMealDropdown(!showMealDropdown)
-                            }}
-                        >
-                            <Text style={styles.mealText}>
-                                {selectedMealType!.charAt(0).toUpperCase() + selectedMealType!.slice(1)}
-                            </Text>
-                        </TouchableOpacity>
-
-                        {showMealDropdown && (
-                            <Modal
-                                visible={showMealDropdown}
-                                transparent={true}
-                                animationType="none"
-                                onRequestClose={() => setShowMealDropdown(false)}
-                            >
-                                <TouchableOpacity
-                                    style={styles.modalOverlay}
-                                    activeOpacity={1}
-                                    onPress={() => setShowMealDropdown(false)}
-                                >
-                                    <View style={styles.modalContent}>
-                                        <View style={[styles.modalDropdown,
-                                        {
-                                            position: 'absolute',
-                                            top: mealTypeInputLayout.y - mealTypeInputLayout.height + hp(8.5), // 8px below button
-                                            left: mealTypeInputLayout.x,
-                                            width: mealTypeInputLayout.width, // Slightly wider than button
-                                        }
-                                        ]}>
-                                            {['breakfast', 'lunch', 'dinner', 'snack', 'others'].map((meal) => (
-                                                <TouchableOpacity
-                                                    key={meal}
-                                                    style={styles.modalOption}
-                                                    onPress={() => {
-                                                        setSelectedMealType?.(meal);
-                                                        setShowMealDropdown(false);
-                                                    }}
-                                                >
-                                                    <Text style={styles.modalOptionText}>
-                                                        {meal.charAt(0).toUpperCase() + meal.slice(1)}
-                                                    </Text>
-                                                </TouchableOpacity>
-                                            ))}
-                                        </View>
-                                    </View>
-                                </TouchableOpacity>
-                            </Modal>
-                        )}
-                    </View>
-                </View>
+            <ServingOptionsCard onServingChange={handleServingChange} />
+            <MacroDetailsContainer food={food} />
+            <View style={styles.dailyGoalsContainer}>
+                <NutritionImpactCard foodNutrition={food.nutrition!} userGoals={mockUser} servingSize={numberOfServings} />
             </View>
         </ScrollView>
     )
@@ -144,88 +99,31 @@ export default FoodDetailPage
 
 const styles = StyleSheet.create({
     foodNameContainer: {
-        paddingHorizontal: wp(3),
-        paddingVertical: wp(3),
+        paddingHorizontal: wp(4),
+        paddingTop: wp(3),
         flex: 1,
         flexDirection: 'row',
         justifyContent: 'space-between'
     },
+    nameAndBrandContainer: {
+        marginLeft: wp(2),
+        maxWidth: wp(59),
+    },
     foodNameText: {
         fontSize: rf(24),
-        fontWeight: '500',
-        paddingLeft: wp(2),
+        fontWeight: '600',
+        color: '#111827',
+        marginBottom: hp(1),
+    },
+    foodBrandText: {
+        fontSize: rf(16),
+        fontWeight: '300',
+        color: '#111827'
     },
     addFoodButton: {
         paddingRight: wp(2),
     },
-    servingOptionContainer: {
-        paddingHorizontal: wp(4),
-        marginTop: hp(2),
-        minHeight: hp(5),
-        overflow: 'visible'
-    },
-    servingOption: {
-        flex: 1,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: hp(2),
-        overflow: 'visible'
-    },
-    servingOptionText: {
-        fontSize: rf(14),
-        fontWeight: '300',
-    },
-    servingOptionInput: {
-        borderWidth: 1,
-        borderColor: 'black',
-        minWidth: wp(24),
-        height: hp(4),
-        borderRadius: wp(2),
-        paddingRight: wp(2),
-    },
-    mealPickerContainer: {
-        minWidth: wp(24),
-    },
-    mealPicker: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: wp(4),
-        paddingVertical: hp(1),
-        backgroundColor: 'transparent',
-    },
-    mealText: {
-        paddingTop: hp(.85),
-        fontSize: rf(14),
-        textAlign: 'right',
-        color: '#333',
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'transparent',
-        justifyContent: 'flex-start',
-    },
-    modalContent: {
-        alignItems: 'center',
-        paddingHorizontal: wp(10),
-    },
-    modalDropdown: {
-        backgroundColor: 'white',
-        borderRadius: 12,
-        width: wp(40),
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-    },
-    modalOption: {
-        paddingHorizontal: wp(4),
-        paddingVertical: hp(2),
-        borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
-    },
-    modalOptionText: {
-        fontSize: rf(14),
-        color: '#333',
-        textAlign: 'right'
-    },
+
+    dailyGoalsContainer: {
+    }
 })

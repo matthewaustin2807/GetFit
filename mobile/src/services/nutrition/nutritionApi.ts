@@ -1,13 +1,16 @@
 import * as SecureStore from 'expo-secure-store';
-import { 
-  FoodSearchResponse, 
-  BarcodeSearchResponse, 
-  Meal, 
-  NutritionSummary,
-  ApiError 
+import {
+    FoodSearchResponse,
+    BarcodeSearchResponse,
+    Meal,
+    NutritionSummary,
+    ApiError,
+    LogMealRequest,
+    LogMealResponse,
+    DeleteMealResponse
 } from '../../types/nutrition';
 
-const API_BASE_URL = 'http://10.0.0.17:8092';
+const API_BASE_URL = 'http://10.0.0.208:8092';
 
 export class NutritionApiService {
     static async getAuthHeaders(): Promise<Record<string, string>> {
@@ -87,5 +90,50 @@ export class NutritionApiService {
     static async getNutritionSummaryByDate(userId: number, date: string): Promise<NutritionSummary> {
         const response = await this.authenticatedFetch(`/api/meals/summary/${date}?userId=${userId}`);
         return response.json() as Promise<NutritionSummary>;
+    }
+
+    // Log a meal
+    static async logMeal(logRequest: LogMealRequest): Promise<LogMealResponse> {
+        const response = await this.authenticatedFetch('/api/meals/log', {
+            method: 'POST',
+            body: JSON.stringify(logRequest),
+        });
+        return response.json() as Promise<LogMealResponse>;
+    }
+
+    // Delete a meal entry
+    static async deleteMeal(entryId: number, userId: number): Promise<DeleteMealResponse> {
+        const response = await this.authenticatedFetch(`/api/meals/${entryId}?userId=${userId}`, {
+            method: 'DELETE',
+        });
+        return response.json() as Promise<DeleteMealResponse>;
+    }
+
+    // Get meals by type (breakfast, lunch, dinner, snack)
+    static async getMealsByType(
+        userId: number,
+        mealType: string,
+        date?: string
+    ): Promise<Meal[]> {
+        const dateParam = date ? `&date=${date}` : '';
+        const response = await this.authenticatedFetch(
+            `/api/meals/type/${mealType.toLowerCase()}?userId=${userId}${dateParam}`
+        );
+        return response.json() as Promise<Meal[]>;
+    }
+
+    // Get weekly meals
+    static async getWeeklyMeals(userId: number, startDate?: string): Promise<Meal[]> {
+        const startDateParam = startDate ? `&startDate=${startDate}` : '';
+        const response = await this.authenticatedFetch(
+            `/api/meals/week?userId=${userId}${startDateParam}`
+        );
+        return response.json() as Promise<Meal[]>;
+    }
+
+    // Get complete food details (with nutrition)
+    static async getFoodWithNutrition(foodId: number): Promise<any> {
+        const response = await this.authenticatedFetch(`/api/foods/${foodId}/complete`);
+        return response.json();
     }
 }

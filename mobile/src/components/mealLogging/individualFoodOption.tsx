@@ -1,7 +1,10 @@
-import { Dimensions, PixelRatio, StyleSheet, Text, View } from 'react-native'
+import { Alert, Dimensions, PixelRatio, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { Icon } from '@rneui/base';
 import { FoodItem } from '@/src/types/nutrition';
+import { router } from 'expo-router';
+import { NutritionApiService } from '@/src/services/nutrition/nutritionApi';
+import { useMealType } from '@/src/context/mealTypeContext';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -18,8 +21,41 @@ interface IndividualFoodOptionProps {
 const IndividualFoodOption: React.FC<IndividualFoodOptionProps> = ({
     item
 }) => {
+    const { selectedMealType } = useMealType(); 
+
+    const goToFoodDetail = () => {
+        router.push({
+            pathname: '/dashboard/nutrition/foodDetailPage',
+            params: {
+                foodData: JSON.stringify(item),
+            }
+        });
+    };
+
+    const logFood = async () => {
+        try {
+            const logRequest = {
+                userId: 3,
+                foodId: item.id!,
+                quantityGrams: 100, // Convert servings to grams
+                mealType: selectedMealType.toUpperCase() as 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER',
+                notes: '' // Optional
+            };
+
+            const result = await NutritionApiService.logMeal(logRequest);
+
+            // Show success message or navigate back
+            Alert.alert('Success', 'Meal logged successfully!');
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to log meal';
+            Alert.alert('Error', errorMessage);
+        }
+    }
+
     return (
-        <View style={styles.individualHistoryContainer}>
+        <TouchableOpacity
+            style={styles.individualHistoryContainer}
+            onPress={goToFoodDetail}>
             <View style={styles.foodContainer}>
                 <Text style={styles.foodNameText}>{item.name}</Text>
                 {item.brand && <Text style={styles.foodBrandText}>{item.brand}</Text>}
@@ -27,11 +63,12 @@ const IndividualFoodOption: React.FC<IndividualFoodOptionProps> = ({
             <Icon
                 name="add-circle-outline"
                 type="ionicon"
-                onPress={() => { console.log('pressed') }}
+                onPress={logFood}
                 style={styles.addIcon}
                 size={rf(32)}
+                color='#4a5568'
             />
-        </View>
+        </TouchableOpacity>
     )
 }
 
@@ -62,17 +99,20 @@ const styles = StyleSheet.create({
     foodNameText: {
         fontSize: rf(16),
         fontWeight: '600',
-        marginBottom: hp(0.5)
+        marginBottom: hp(0.5),
+        color: '#111827'
     },
     foodBrandText: {
         fontSize: rf(12),
-        fontWeight: '400',
-        marginBottom: hp(0.5)
+        fontWeight: '300',
+        marginBottom: hp(0.5),
+        color: '#111827'
     },
     foodDescriptionText: {
         fontSize: rf(12),
         fontWeight: '300'
     },
     addIcon: {
+        paddingRight: wp(2),
     }
 })
