@@ -14,7 +14,7 @@ const DailyNutritionSummary = () => {
         <View
             style={styles.nutritionContainer}
         >
-            <Text style={styles.nutritionTitle}>Nutrients Today</Text>
+            <Text style={styles.nutritionTitle}>Day Summary</Text>
             <View
                 style={styles.macronutrientsContainer}
             >
@@ -49,6 +49,8 @@ const styles = StyleSheet.create({
     nutritionTitle: {
         fontSize: rf(24),
         fontWeight: '500',
+        marginLeft: wp(2),
+        marginBottom: hp(1)
     },
     macronutrientsContainer: {
         flex: 1,

@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
+import API_CONFIG from '../config/apiConfig';
 
-const API_BASE_URL = 'http://10.0.0.17:8091';
+const API_BASE_URL = `${API_CONFIG.BASE_URL}:8091`
 
 export class ApiService {
   static async getAuthHeaders() {

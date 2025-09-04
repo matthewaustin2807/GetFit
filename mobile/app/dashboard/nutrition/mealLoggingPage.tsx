@@ -4,7 +4,7 @@ import DailyNutritionSummary from '@/src/components/mealLogging/mealLoggingCompo
 import IndividualMealContainer from '@/src/components/mealLogging/mealLoggingComponents/individualMealContainer';
 import { useDate } from '@/src/context/dateContext';
 import { NutritionApiService } from '@/src/services/nutrition/nutritionApi';
-import { UserMealSummary } from '@/src/types/nutrition';
+import { Meal, UserMealSummary } from '@/src/types/nutrition';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -17,6 +17,13 @@ const rf = (size: number) => size * PixelRatio.getFontScale();
 const MealLoggingPage = () => {
     const { selectedDate, setSelectedDate, displayDate } = useDate();
     const [meals, setMeals] = useState<UserMealSummary | null>(null);
+    const [mealMap, setMealMap] = useState<Map<String, Meal[]>>(new Map<String, Meal[]>([
+        ['BREAKFAST', []],
+        ['LUNCH', []],
+        ['DINNER', []],
+        ['SNACK', []],
+        ['OTHER', []]
+    ]));
 
     useEffect(() => {
         const getMeals = async () => {
@@ -30,6 +37,22 @@ const MealLoggingPage = () => {
         }
         getMeals();
     }, [selectedDate])
+
+    useEffect(() => {
+        const currMap = new Map<String, Meal[]>([
+            ['BREAKFAST', []],
+            ['LUNCH', []],
+            ['DINNER', []],
+            ['SNACK', []],
+            ['OTHER', []]
+        ])
+        if (meals && meals.mealCount! > 0) {
+            meals.meals.forEach((item) => {
+                currMap.get(item.mealType)?.push(item)
+            })
+        }
+        setMealMap(currMap)
+    }, [meals])
 
     const mealTimes = [
         {
@@ -59,7 +82,7 @@ const MealLoggingPage = () => {
             <DailyNutritionSummary />
             <View>
                 {mealTimes.map((item, index) => (
-                    <IndividualMealContainer key={item.type} text={item.text} type={item.type} />
+                    <IndividualMealContainer key={item.type} text={item.text} type={item.type} meals={mealMap.get(item.type) ?? []}  />
                 ))}
             </View>
         </ScrollView>

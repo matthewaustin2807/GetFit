@@ -10,8 +10,9 @@ import {
     DeleteMealResponse,
     UserMealSummary
 } from '../../types/nutrition';
+import API_CONFIG from '../config/apiConfig';
 
-const API_BASE_URL = 'http://10.0.0.208:8092';
+const API_BASE_URL = `${API_CONFIG.BASE_URL}:8092`
 
 export class NutritionApiService {
     static async getAuthHeaders(): Promise<Record<string, string>> {

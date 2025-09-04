@@ -44,7 +44,6 @@ public class FoodSearchService {
   @SuppressWarnings("unchecked")
   public Map<String, Object> searchFoods(String query, int limit) {
     List<Map<String, Object>> results = new ArrayList<>();
-
     // 1. Search local database first (fastest)
     List<Food> localFoods = foodRepository.searchFoodsByNameOrBrand(query);
 
@@ -179,7 +178,6 @@ public class FoodSearchService {
           for (Map<String, Object> hit : hits) {
             try {
               Map<String, Object> foodData = createFoodDataFromSearchALicious(hit);
-
               if (foodData != null) {
                 // AUTO-CACHE: Save foods with nutrition to local database
                 if ((Boolean) foodData.getOrDefault("hasNutrition", false)) {
@@ -188,11 +186,12 @@ public class FoodSearchService {
                     Food cachedFood = createAndSaveFoodFromAPI(foodData);
                     System.out.println("📄 Auto-cached: " + foodData.get("name"));
 
-                    // Update response to show it's now local
+                    // UPDATE: Return the cached food with database ID
                     Optional<FoodNutrition> nutrition = nutritionRepository.findByFoodId(cachedFood.getId());
                     foodData = createFoodResponse(cachedFood, nutrition.orElse(null));
                     foodData.put("source", "auto-cached");
                     foodData.put("available_offline", true);
+                    foodData.put("id", cachedFood.getId());
                   }
                 }
                 results.add(foodData);

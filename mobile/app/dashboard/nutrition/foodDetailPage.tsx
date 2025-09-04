@@ -9,6 +9,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import ServingOptionsCard from '@/src/components/mealLogging/foodDetailComponents/servingOptionsCard';
 import MacroDetailsContainer from '@/src/components/mealLogging/foodDetailComponents/macroDetailsContainer';
 import { NutritionApiService } from '@/src/services/nutrition/nutritionApi';
+import { useDate } from '@/src/context/dateContext';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -37,6 +38,7 @@ const FoodDetailPage: React.FC<FoodDetailPageProps> = ({
 }) => {
     const { foodData } = useLocalSearchParams();
     const { selectedMealType } = useMealType();
+    const { selectedDate } = useDate();
     const [numberOfServings, setNumberOfServings] = useState(1);
 
     const handleServingChange = (servings: number) => {
@@ -53,6 +55,7 @@ const FoodDetailPage: React.FC<FoodDetailPageProps> = ({
                 foodId: food.id!,
                 quantityGrams: 100 * numberOfServings, // Convert servings to grams
                 mealType: selectedMealType.toUpperCase() as 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER',
+                date: selectedDate.toISOString().split('T')[0],
                 notes: '' // Optional
             };
 
