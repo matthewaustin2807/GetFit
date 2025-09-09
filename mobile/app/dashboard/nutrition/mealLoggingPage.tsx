@@ -4,7 +4,7 @@ import DailyNutritionSummary from '@/src/components/mealLogging/mealLoggingCompo
 import IndividualMealContainer from '@/src/components/mealLogging/mealLoggingComponents/individualMealContainer';
 import { useDate } from '@/src/context/dateContext';
 import { NutritionApiService } from '@/src/services/nutrition/nutritionApi';
-import { Meal, UserMealSummary } from '@/src/types/nutrition';
+import { Meal, NutritionSummary, UserMealSummary } from '@/src/types/nutrition';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -17,6 +17,7 @@ const rf = (size: number) => size * PixelRatio.getFontScale();
 const MealLoggingPage = () => {
     const { selectedDate, setSelectedDate, displayDate } = useDate();
     const [meals, setMeals] = useState<UserMealSummary | null>(null);
+    const [nutritionSummary, setNutritionSummary] = useState<NutritionSummary | null>(null);
     const [mealMap, setMealMap] = useState<Map<String, Meal[]>>(new Map<String, Meal[]>([
         ['BREAKFAST', []],
         ['LUNCH', []],
@@ -26,16 +27,19 @@ const MealLoggingPage = () => {
     ]));
 
     useEffect(() => {
-        const getMeals = async () => {
+        const getMealsAndSummary = async () => {
             try {
-                const response = await NutritionApiService.getMealsByDate(3, selectedDate.toISOString().split('T')[0])
-                setMeals(response)
+                const mealResponse = await NutritionApiService.getMealsByDate(3, selectedDate.toISOString().split('T')[0])
+                setMeals(mealResponse)
+
+                const summaryResponse = await NutritionApiService.getNutritionSummaryByDate(3, selectedDate.toISOString().split('T')[0])
+                setNutritionSummary(summaryResponse);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'Failed to log meal';
+                const errorMessage = error instanceof Error ? error.message : 'Failed to fetch data';
                 Alert.alert('Error', errorMessage);
             }
         }
-        getMeals();
+        getMealsAndSummary();
     }, [selectedDate])
 
     useEffect(() => {
@@ -79,7 +83,7 @@ const MealLoggingPage = () => {
 
     return (
         <ScrollView>
-            <DailyNutritionSummary />
+            <DailyNutritionSummary nutritionSummary={nutritionSummary}/>
             <View>
                 {mealTimes.map((item, index) => (
                     <IndividualMealContainer key={item.type} text={item.text} type={item.type} meals={mealMap.get(item.type) ?? []}  />

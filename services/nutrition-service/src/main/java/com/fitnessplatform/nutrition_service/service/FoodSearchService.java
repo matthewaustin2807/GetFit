@@ -182,16 +182,25 @@ public class FoodSearchService {
                 // AUTO-CACHE: Save foods with nutrition to local database
                 if ((Boolean) foodData.getOrDefault("hasNutrition", false)) {
                   String barcode = (String) foodData.get("barcode");
-                  if (barcode != null && !foodRepository.existsByBarcode(barcode)) {
-                    Food cachedFood = createAndSaveFoodFromAPI(foodData);
-                    System.out.println("📄 Auto-cached: " + foodData.get("name"));
+                  if (foodRepository.existsByBarcode(barcode)) {
+                    Optional<Food> existingFoodOpt = foodRepository.findByBarcode(barcode);
 
-                    // UPDATE: Return the cached food with database ID
-                    Optional<FoodNutrition> nutrition = nutritionRepository.findByFoodId(cachedFood.getId());
-                    foodData = createFoodResponse(cachedFood, nutrition.orElse(null));
-                    foodData.put("source", "auto-cached");
-                    foodData.put("available_offline", true);
-                    foodData.put("id", cachedFood.getId());
+                    if (existingFoodOpt.isPresent()) {
+                      Food existingFood = existingFoodOpt.get();
+                      // Return existing cached food with ID
+                      Optional<FoodNutrition> nutrition = nutritionRepository.findByFoodId(existingFood.getId());
+                      foodData = createFoodResponse(existingFood, nutrition.orElse(null));
+                    }
+                  } else if (barcode != null) {
+                      Food cachedFood = createAndSaveFoodFromAPI(foodData);
+                      System.out.println("📄 Auto-cached: " + foodData.get("name"));
+
+                      // UPDATE: Return the cached food with database ID
+                      Optional<FoodNutrition> nutrition = nutritionRepository.findByFoodId(cachedFood.getId());
+                      foodData = createFoodResponse(cachedFood, nutrition.orElse(null));
+                      foodData.put("source", "auto-cached");
+                      foodData.put("available_offline", true);
+                      foodData.put("id", cachedFood.getId());
                   }
                 }
                 results.add(foodData);

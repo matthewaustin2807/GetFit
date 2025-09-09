@@ -56,49 +56,62 @@ export interface ApiError {
 }
 
 export interface NutritionSummary {
-  totalCalories: number;
-  totalProtein: number;
-  totalCarbs: number;
-  totalFat: number;
-  date: string;
-  // Add other summary properties
+  message: string;
+  summary: {
+    totalCalories: number;
+    totalProtein: number;
+    totalCarbs: number;
+    totalFat: number;
+    date: string;
+    userId: string;
+    totalSugar: number;
+    totalFiber: number;
+    totalSodium: number;
+    mealBreakdown: {
+      lunch: number;
+      other: number;
+      snack: number;
+      breakfast: number;
+      dinner: number;
+    }
+  }
 }
 
 export interface LogMealRequest {
-    userId: number;
-    foodId: number;
-    quantityGrams: number;
-    mealType: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER';
-    date?: string; // Optional, defaults to today in backend
-    notes?: string;
+  userId: number;
+  foodId: number;
+  quantityGrams: number;
+  mealType: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER';
+  date?: string; // Optional, defaults to today in backend
+  notes?: string;
 }
 
 export interface LogMealResponse {
-    message: string;
-    entry: {
-        id: number;
-        userId: number;
-        foodId: number;
-        entryDate: string;
-        mealType: string;
-        quantityGrams: number;
-        notes?: string;
-        loggedAt: string;
-        nutrition: {
-            calories: number;
-            protein: number;
-            carbs: number;
-            fat: number;
-            fiber?: number;
-            sugar?: number;
-            sodium?: number;
-        };
+  message: string;
+  entry: {
+    id: number;
+    userId: number;
+    foodId: number;
+    entryDate: string;
+    mealType: string;
+    quantityGrams: number;
+    notes?: string;
+    loggedAt: string;
+    nutrition: {
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+      fiber?: number;
+      sugar?: number;
+      sodium?: number;
     };
+  };
 }
 
 export interface DeleteMealResponse {
-    message: string;
-    entryId: number;
+  message: string;
+  entryId: number;
 }
 
 export interface UserMealSummary {

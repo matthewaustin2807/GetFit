@@ -1,5 +1,6 @@
 import { Dimensions, PixelRatio, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
+import { NutritionSummary } from '@/src/types/nutrition';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -9,7 +10,13 @@ const wp = (percentage: number) => (percentage * width) / 100;
 const hp = (percentage: number) => (percentage * height) / 100;
 const rf = (size: number) => size * PixelRatio.getFontScale();
 
-const DailyNutritionSummary = () => {
+interface DailyNutritionSummaryProps {
+    nutritionSummary: NutritionSummary | null
+}
+
+const DailyNutritionSummary: React.FC<DailyNutritionSummaryProps> = ({
+    nutritionSummary
+}) => {
     return (
         <View
             style={styles.nutritionContainer}
@@ -19,20 +26,20 @@ const DailyNutritionSummary = () => {
                 style={styles.macronutrientsContainer}
             >
                 <View style={styles.individualNutritionContainer}>
-                    <Text style={styles.nutritionValueText}>292</Text>
+                    <Text style={styles.nutritionValueText}>{nutritionSummary != null ? nutritionSummary.summary.totalCarbs : 0}</Text>
                     <Text style={styles.nutritionLabelText}>Carbs (g)</Text>
                 </View>
                 <View style={styles.individualNutritionContainer}>
-                    <Text style={styles.nutritionValueText}>292</Text>
+                    <Text style={styles.nutritionValueText}>{nutritionSummary != null ? nutritionSummary.summary.totalFat : 0}</Text>
                     <Text style={styles.nutritionLabelText}>Fat (g)</Text>
                 </View>
                 <View style={styles.individualNutritionContainer}>
-                    <Text style={styles.nutritionValueText}>292</Text>
+                    <Text style={styles.nutritionValueText}>{nutritionSummary != null ? nutritionSummary.summary.totalProtein : 0}</Text>
                     <Text style={styles.nutritionLabelText}>Protein (g)</Text>
                 </View>
                 <View style={styles.individualNutritionContainer}>
-                    <Text style={styles.nutritionValueText}>292</Text>
-                    <Text style={styles.nutritionLabelText}>Calories (g)</Text>
+                    <Text style={styles.nutritionValueText}>{nutritionSummary != null ? nutritionSummary.summary.totalCalories : 0}</Text>
+                    <Text style={styles.nutritionLabelText}>Calories</Text>
                 </View>
             </View>
         </View>
