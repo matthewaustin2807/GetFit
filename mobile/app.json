@@ -34,9 +34,17 @@
           "backgroundColor": "#ffffff"
         }
       ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to scan barcodes."
+        }
+      ],
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-barcode-scanner"
     ],
+
     "experiments": {
       "typedRoutes": true
     }

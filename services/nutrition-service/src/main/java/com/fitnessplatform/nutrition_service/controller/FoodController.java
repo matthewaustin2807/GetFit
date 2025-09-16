@@ -56,6 +56,7 @@ public class FoodController {
    */
   @GetMapping("/barcode/{barcode}")
   public ResponseEntity<?> searchByBarcode(@PathVariable String barcode) {
+    System.out.println("Called once");
     try {
       if (barcode == null || barcode.trim().isEmpty()) {
         return ResponseEntity.badRequest().body(Map.of(
@@ -75,20 +76,6 @@ public class FoodController {
     } catch (Exception e) {
       return ResponseEntity.badRequest().body(Map.of(
           "error", "Barcode search failed: " + e.getMessage()
-      ));
-    }
-  }
-
-  // NEW: Cache food from API to local database
-  @PostMapping("/cache/{barcode}")
-  public ResponseEntity<?> cacheFoodLocally(@PathVariable String barcode) {
-    try {
-      Map<String, Object> result = foodSearchService.saveAndCacheFoodFromAPI(barcode);
-      return ResponseEntity.ok(result);
-
-    } catch (Exception e) {
-      return ResponseEntity.badRequest().body(Map.of(
-          "error", "Failed to cache food: " + e.getMessage()
       ));
     }
   }

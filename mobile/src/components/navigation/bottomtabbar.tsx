@@ -49,7 +49,7 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({
       activeIcon: '🏠', // Could be different if you want
     },
     {
-      route: '/nutrition',
+      route: '/dashboard/nutrition/mealLoggingPage',
       label: 'Nutrition',
       icon: '🍎',
       activeIcon: '🍎',

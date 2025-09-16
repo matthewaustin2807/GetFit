@@ -10,7 +10,10 @@ import { format } from "date-fns";
 import { router, Stack } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Dimensions, PixelRatio, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
+
+import WaterLogModal from '@/src/components/mealLogging/waterLoggingComponents/waterLogModal'
+import { NutritionApiService } from '@/src/services/nutrition/nutritionApi';
+import { NutritionSummary } from '@/src/types/nutrition';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -23,87 +26,83 @@ const rf = (size: number) => size * PixelRatio.getFontScale();
 const Drawer = createDrawerNavigator();
 
 const HomePage = () => {
-    const { user, isAuthenticated } = useAuthStore();
-    
-    useEffect(() => {
-        if (!isAuthenticated) router.replace('/auth/authpage')
-    }, [isAuthenticated]);
-
     let [fontsLoaded] = useFonts({
         Pacifico_400Regular,
         OpenSans_400Regular,
     });
+
+    const { user, isAuthenticated } = useAuthStore();
+
+    // Water tracking state
+    const [showWaterModal, setShowWaterModal] = useState(false);
+    const [currentWaterIntake, setCurrentWaterIntake] = useState(0);
+    const [dailyWaterGoal] = useState(8);
+    const [loadingWater, setLoadingWater] = useState(false);
+
+    // Nutrition summary state
+    const [nutritionSummary, setNutritionSummary] = useState<NutritionSummary | null>(null);
+    const [loadingNutrition, setLoadingNutrition] = useState(false);
+
     const quickActionsData = [
         {
-            title: 'Log Food',
-            icon: '📷',
-            subtitle: 'Log your food intake',
-            color: 'pink'
-        },
-        {
-            title: 'Log Food',
-            icon: '📷',
-            subtitle: 'Log your food intake',
-            color: 'pink'
-        },
-        {
-            title: 'Log Food',
-            icon: '📷',
-            subtitle: 'Log your food intake',
-            color: 'pink'
-        },
+            title: 'Log Water',
+            icon: '💧',
+            subtitle: 'Track your hydration',
+            color: 'lightblue',
+            onPress: () => setShowWaterModal(true)
+        }
     ];
 
     const chartsData = [
         {
             title: 'Calories',
-            value: 1847,
-            maxValue: 2200,
+            value: nutritionSummary?.summary.totalCalories || 0,
+            maxValue: user?.dailyCalories || 2200,
             unit: 'cal',
             color: '#667eea',
-            progress: 1847 / 2200, // 84%
+            progress: nutritionSummary ? (nutritionSummary.summary.totalCalories / (user?.dailyCalories || 2200)) : 0,
             icon: '🔥',
-            subtitle: '353 remaining'
+            subtitle: `${Math.max(0, (user?.dailyCalories || 2200) - (nutritionSummary?.summary.totalCalories || 0))} remaining`
         },
         {
             title: 'Protein',
-            value: 127,
-            maxValue: 150,
+            value: Math.round(nutritionSummary?.summary.totalProtein || 0),
+            maxValue: user?.dailyProtein || 150,
             unit: 'g',
             color: '#f093fb',
-            progress: 127 / 150, // 85%
+            progress: nutritionSummary ? (nutritionSummary.summary.totalProtein / (user?.dailyProtein || 150)) : 0,
             icon: '🥩',
-            subtitle: '23g remaining'
+            subtitle: `${Math.max(0, (user?.dailyProtein || 150) - Math.round(nutritionSummary?.summary.totalProtein || 0))}g remaining`
         },
         {
             title: 'Carbs',
-            value: 189,
-            maxValue: 275,
+            value: Math.round(nutritionSummary?.summary.totalCarbs || 0),
+            maxValue: user?.dailyCarbs || 275,
             unit: 'g',
             color: '#4facfe',
-            progress: 189 / 275, // 69%
+            progress: nutritionSummary ? (nutritionSummary.summary.totalCarbs / (user?.dailyCarbs || 275)) : 0,
             icon: '🍞',
-            subtitle: '86g remaining'
+            subtitle: `${Math.max(0, (user?.dailyCarbs || 275) - Math.round(nutritionSummary?.summary.totalCarbs || 0))}g remaining`
         },
         {
             title: 'Fat',
-            value: 68,
-            maxValue: 97,
+            value: Math.round(nutritionSummary?.summary.totalFat || 0),
+            maxValue: user?.dailyFat || 97,
             unit: 'g',
             color: '#43e97b',
-            progress: 68 / 97, // 70%
+            progress: nutritionSummary ? (nutritionSummary.summary.totalFat / (user?.dailyFat || 97)) : 0,
             icon: '🥑',
-            subtitle: '29g remaining'
+            subtitle: `${Math.max(0, (user?.dailyFat || 97) - Math.round(nutritionSummary?.summary.totalFat || 0))}g remaining`
         },
         {
             title: 'Water',
-            value: 6,
-            maxValue: 8,
+            value: currentWaterIntake,
+            maxValue: dailyWaterGoal,
             unit: 'glasses',
             color: '#38f9d7',
-            progress: 6 / 8, // 75%
+            progress: currentWaterIntake / dailyWaterGoal,
             icon: '💧',
-            subtitle: '2 glasses left'
+            subtitle: `${Math.max(0, dailyWaterGoal - currentWaterIntake)} glasses left`
         },
         {
             title: 'Steps',
@@ -116,6 +115,66 @@ const HomePage = () => {
             subtitle: '1.6k remaining'
         },
     ];
+
+    useEffect(() => {
+        if (!isAuthenticated) router.replace('/auth/authpage')
+    }, [isAuthenticated]);
+
+    useEffect(() => {
+        if (user?.id) {
+            loadTodayData();
+        }
+    }, [user?.id]);
+
+    const loadTodayData = async () => {
+        await Promise.all([
+            loadTodayNutritionSummary(),
+            loadTodayWaterIntake()
+        ]);
+    };
+
+    const loadTodayNutritionSummary = async () => {
+        try {
+            setLoadingNutrition(true);
+            const response = await NutritionApiService.getTodayNutritionSummary(user!.id);
+            setNutritionSummary(response);
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to load nutrition data';
+            console.error('Failed to load nutrition summary:', errorMessage);
+            // Set null on error - we'll handle this in the charts data
+            setNutritionSummary(null);
+        } finally {
+            setLoadingNutrition(false);
+        }
+    };
+
+    const loadTodayWaterIntake = async () => {
+        try {
+            setLoadingWater(true);
+            const response = await NutritionApiService.getTodayWaterIntake(user!.id);
+            setCurrentWaterIntake(Number(response.glassesConsumed) || 0);
+        } catch (error) {
+            console.error('Failed to load water intake:', error);
+        } finally {
+            setLoadingWater(false);
+        }
+    };
+
+    const handleLogWater = async (glasses: number) => {
+        try {
+            const response = await NutritionApiService.logWaterIntake(user!.id, glasses);
+
+            // Update local state with the total from backend
+            setCurrentWaterIntake(Number(response.totalToday) || 0);
+
+            console.log(`Successfully logged ${glasses} glasses. Total today: ${response.totalToday}`);
+
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to log water';
+            console.error('Failed to log water:', errorMessage);
+            // You can show an error toast/alert here
+        }
+    };
 
     const currTime = new Date().getHours();
     const currDate = new Date();
@@ -138,17 +197,22 @@ const HomePage = () => {
                     </View>
                     {/** Date Section */}
                     <View style={styles.dateContainer}>
-                        <Text style={styles.date}>{format(currDate, 'EEEE MMM, d yyyy')}</Text>
+                        <Text style={styles.date}>{format(currDate, 'EEEE, MMM d yyyy')}</Text>
                     </View>
                     {/** Carousel Section */}
-                    <View>
+                    <View style={styles.progressContainer}>
                         <HorizontalScrollContainer
                             title="Today's Progress"
                             data={chartsData}
                             renderItem={(chart, index) => (
                                 <ChartCard
                                     title={chart.title}
-                                    value={chart.value}
+                                    value={
+                                        (loadingNutrition && ['Calories', 'Protein', 'Carbs', 'Fat'].includes(chart.title)) ||
+                                            (loadingWater && chart.title === 'Water')
+                                            ? '...'
+                                            : chart.value
+                                    }
                                     maxValue={chart.maxValue}
                                     unit={chart.unit}
                                     color={chart.color}
@@ -163,7 +227,7 @@ const HomePage = () => {
                         />
                     </View>
                     {/** Quick Action Section */}
-                    <View>
+                    <View style={styles.quickActionContainer}>
                         <HorizontalScrollContainer
                             title="Quick Actions"
                             data={quickActionsData}
@@ -173,6 +237,7 @@ const HomePage = () => {
                                     color={action.color}
                                     subtitle={action.subtitle}
                                     icon={action.icon}
+                                    onPress={action.onPress}
                                 />
                             )}
                             itemWidth={70}
@@ -181,6 +246,13 @@ const HomePage = () => {
                         />
                     </View>
                 </View>
+                <WaterLogModal
+                    visible={showWaterModal}
+                    onClose={() => setShowWaterModal(false)}
+                    currentIntake={currentWaterIntake}
+                    dailyGoal={dailyWaterGoal}
+                    onLogWater={handleLogWater}
+                />
             </>
 
         );
@@ -195,10 +267,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: wp(5)
     },
     greetingContainer: {
-        minHeight: wp(24),
-        flex: 1,
         flexDirection: 'column',
-        alignItems: 'flex-end'
+        alignItems: 'flex-end',
+        marginBottom: hp(1),
     },
     greeting: {
         fontFamily: 'Pacifico_400Regular',
@@ -209,9 +280,6 @@ const styles = StyleSheet.create({
         fontFamily: 'OpenSans_400Regular',
     },
     dateContainer: {
-        minHeight: wp(8),
-        flex: 1,
-        maxHeight: hp(4),
     },
     date: {
         fontSize: rf(24),
@@ -220,6 +288,11 @@ const styles = StyleSheet.create({
     },
     dataContainer: {
         maxHeight: hp(22),
+    },
+    progressContainer: {
+    },
+    quickActionContainer: {
+
     }
 });
 

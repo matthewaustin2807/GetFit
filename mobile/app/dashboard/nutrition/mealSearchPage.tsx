@@ -1,10 +1,13 @@
+import BarcodeScanner from '@/src/components/barcode/barcodeScanner';
 import IndividualFoodOption from '@/src/components/mealLogging/mealSearchComponents/individualFoodOption';
-import { useMealType} from '@/src/context/mealTypeContext';
+import { useMealType } from '@/src/context/mealTypeContext';
 import { NutritionApiService } from '@/src/services/nutrition/nutritionApi';
+import { useAuthStore } from '@/src/store/authStore';
 import { FoodItem, FoodSearchResponse } from '@/src/types/nutrition';
 import { Icon, SearchBar } from '@rneui/base';
-import React, { useState } from 'react';
-import { Dimensions, PixelRatio, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, Modal, PixelRatio, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 
 // Get screen dimensions
@@ -22,8 +25,14 @@ const MealSearchPage = () => {
   const [searchMode, setSearchMode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<FoodSearchResponse | null>(null);
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
 
   const { selectedMealType } = useMealType();
+  const { user, isAuthenticated } = useAuthStore();
+
+  useEffect(() => {
+    if (!isAuthenticated) router.replace('/auth/authpage')
+  }, [isAuthenticated]);
 
   const handleSubmit = async () => {
     // Empty Search
@@ -57,6 +66,38 @@ const MealSearchPage = () => {
     }
   }
 
+  const handleBarcodeScanned = async (barcode: string) => {
+    setShowBarcodeScanner(false);
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Search for food by barcode
+      const response = await NutritionApiService.getFoodByBarcode(barcode);
+
+      if (response.found) {
+        console.log(response.food)
+        router.push({
+          pathname: '/dashboard/nutrition/foodDetailPage',
+          params: {
+            foodData: JSON.stringify(response.food),
+          }
+        });
+      } else {
+        setError('No food found for this barcode');
+        setFoods([]);
+      }
+
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Barcode search failed';
+      setError(errorMessage);
+      setFoods([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View
@@ -78,7 +119,9 @@ const MealSearchPage = () => {
       </View>
 
       <View style={styles.searchOptionsContainer}>
-        <TouchableOpacity style={styles.searchOptionContainer}>
+        <TouchableOpacity style={styles.searchOptionContainer}
+          onPress={() => setShowBarcodeScanner(true)}
+        >
           <Icon
             name='barcode-outline'
             type='ionicon'
@@ -127,6 +170,16 @@ const MealSearchPage = () => {
       <View style={styles.foodHistoryContainer}>
         <Text style={styles.historyText}>History</Text>
       </View>
+      <Modal
+        visible={showBarcodeScanner}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <BarcodeScanner
+          onBarcodeScanned={handleBarcodeScanned}
+          onClose={() => setShowBarcodeScanner(false)}
+        />
+      </Modal>
     </ScrollView>
   )
 }

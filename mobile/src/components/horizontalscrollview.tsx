@@ -82,6 +82,7 @@ export function HorizontalScrollContainer<T>({
 
       {/* Horizontal Scroll Container */}
       <ScrollView
+      style={{ paddingBottom: hp(1) }}
         ref={scrollViewRef}
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -139,7 +140,6 @@ export function HorizontalScrollContainer<T>({
 
 const styles = StyleSheet.create({
   container: {
-    
     marginVertical: hp(1),
   },
   sectionTitle: {

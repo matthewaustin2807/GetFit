@@ -6,6 +6,10 @@ import com.fitnessplatform.nutrition_service.entity.FoodNutrition;
 import com.fitnessplatform.nutrition_service.repository.FoodRepository;
 import com.fitnessplatform.nutrition_service.repository.FoodNutritionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
@@ -17,6 +21,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 @Service
 public class FoodSearchService {
@@ -102,8 +109,28 @@ public class FoodSearchService {
       System.out.println("🔍 Barcode " + barcode + " not found locally, searching API...");
       enforceRateLimit(PRODUCT_RATE_LIMIT, lastProductRequest);
 
-      Map<String, Object> apiResult = searchBarcodeFromSearchALicious(barcode);
+      Map<String, Object> apiResult = searchBarcodeFromOpenFoodFacts(barcode);
+      // CHECK AGAIN: Maybe another thread cached it while we were doing API call
+
       if (apiResult != null) {
+        String foundBarcode = (String) apiResult.get("barcode");
+
+        // CHECK AGAIN: Maybe another thread cached it while we were doing API call
+        Optional<Food> existingFood = foodRepository.findByBarcode(foundBarcode);
+        if (existingFood.isPresent()) {
+          System.out.println("⚠️ Food was cached by another request, returning existing");
+          Optional<FoodNutrition> nutrition = nutritionRepository.findByFoodId(existingFood.get().getId());
+          Map<String, Object> foodData = createFoodResponse(existingFood.get(), nutrition.orElse(null));
+          foodData.put("source", "local");
+          foodData.put("available_offline", true);
+
+          return Map.of(
+              "barcode", barcode,
+              "found", true,
+              "source", "cached_by_another_request",
+              "food", foodData
+          );
+        }
         // Auto-cache the result
         if ((Boolean) apiResult.getOrDefault("hasNutrition", false)) {
           Food cachedFood = createAndSaveFoodFromAPI(apiResult);
@@ -224,30 +251,33 @@ public class FoodSearchService {
    * Search barcode using Search-a-licious API
    */
   @SuppressWarnings("unchecked")
-  private Map<String, Object> searchBarcodeFromSearchALicious(String barcode) {
+  private Map<String, Object> searchBarcodeFromOpenFoodFacts(String barcode) {
     try {
-      // Search for the specific barcode
-      String url = "https://search.openfoodfacts.org/search" +
-          "?q=code:" + barcode +
-          "&size=1" +
-          "&fields=code,product_name,brands,nutriments";
+      // Use official Open Food Facts API v2 endpoint
+      String url = "https://world.openfoodfacts.net/api/v2/product/" + barcode +
+          "?fields=code,product_name,brands,nutriments";
 
-      System.out.println("🔍 Searching barcode in Search-a-licious: " + barcode);
-      Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+      System.out.println("🔍 Searching barcode in Open Food Facts API: " + barcode);
 
-      if (response != null && response.containsKey("hits")) {
-        List<Map<String, Object>> hits = (List<Map<String, Object>>) response.get("hits");
+      // CRITICAL: Add proper User-Agent header to avoid being blocked
+      HttpHeaders headers = new HttpHeaders();
+      headers.set("User-Agent", "FitnessApp/1.0 (fitness-app@yourcompany.com)");
 
-        if (hits != null && !hits.isEmpty()) {
-          Map<String, Object> hit = hits.get(0);
-          return createFoodDataFromSearchALicious(hit);
-        }
+      HttpEntity<String> entity = new HttpEntity<>(headers);
+
+      // Use exchange() instead of getForObject() to include headers
+      ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
+      Map<String, Object> responseBody = response.getBody();
+      printResponseBody(responseBody);
+      if (responseBody != null && "1".equals(String.valueOf(responseBody.get("status")))) {
+        Map<String, Object> product = (Map<String, Object>) responseBody.get("product");
+        return createFoodDataFromOpenFoodFacts(product, barcode);
       }
 
       return null;
 
     } catch (Exception e) {
-      System.err.println("Search-a-licious barcode search error: " + e.getMessage());
+      System.err.println("Open Food Facts barcode search error: " + e.getMessage());
       return null;
     }
   }
@@ -309,6 +339,66 @@ public class FoodSearchService {
 
     } catch (Exception e) {
       System.out.println("Error creating food data from Search-a-licious: " + e.getMessage());
+      return null;
+    }
+  }
+
+  /**
+   * Create food data from Open Food Facts API response
+   */
+  @SuppressWarnings("unchecked")
+  private Map<String, Object> createFoodDataFromOpenFoodFacts(Map<String, Object> product, String barcode) {
+    try {
+      // Extract basic food info
+      String name = getStringValue(product, "product_name");
+      String brand = cleanBrandName(product.get("brands"));
+
+      if (name == null || name.trim().isEmpty()) {
+        return null;
+      }
+
+      Map<String, Object> foodData = new HashMap<>();
+      foodData.put("name", name);
+      foodData.put("brand", brand);
+      foodData.put("barcode", barcode);
+      foodData.put("source", "open_food_facts");
+      foodData.put("available_offline", false);
+
+      // Extract nutrition data from Open Food Facts format
+      Map<String, Object> nutriments = (Map<String, Object>) product.get("nutriments");
+      if (nutriments != null) {
+        Map<String, Object> nutrition = new HashMap<>();
+
+        // Open Food Facts uses these exact field names
+        Double calories = getDoubleValue(nutriments, "energy");
+        Double protein = getDoubleValue(nutriments, "proteins");
+        Double carbs = getDoubleValue(nutriments, "carbohydrates");
+        Double fat = getDoubleValue(nutriments, "fat");
+        Double fiber = getDoubleValue(nutriments, "fiber");
+        Double sugar = getDoubleValue(nutriments, "sugars");
+        Double sodium = getDoubleValue(nutriments, "sodium");
+
+        // Convert sodium from g to mg (your entity expects mg)
+        if (sodium != null && !getStringValue(nutriments, "sodium_unit").equals("mg")) sodium = sodium * 1000;
+
+        nutrition.put("calories", calories);
+        nutrition.put("protein", protein);
+        nutrition.put("carbs", carbs);
+        nutrition.put("fat", fat);
+        nutrition.put("fiber", fiber);
+        nutrition.put("sugar", sugar);
+        nutrition.put("sodium", sodium);
+
+        foodData.put("nutrition", nutrition);
+        foodData.put("hasNutrition", calories != null);
+      } else {
+        foodData.put("hasNutrition", false);
+      }
+
+      return foodData;
+
+    } catch (Exception e) {
+      System.out.println("Error creating food data from Open Food Facts: " + e.getMessage());
       return null;
     }
   }
@@ -400,29 +490,6 @@ public class FoodSearchService {
     } catch (Exception e) {
       System.out.println("Error cleaning brand name: " + e.getMessage());
       return brandValue.toString().trim();
-    }
-  }
-
-  public Map<String, Object> saveAndCacheFoodFromAPI(String barcode) {
-    try {
-      // Enforce rate limiting for product queries
-      enforceRateLimit(PRODUCT_RATE_LIMIT, lastProductRequest);
-
-      // Get food from API
-      Map<String, Object> apiFood = getFoodFromOpenFoodFacts(barcode);
-
-      // Save to local database for faster future access
-      Food localFood = createFoodFromAPIData(apiFood, barcode);
-      Optional<FoodNutrition> nutrition = nutritionRepository.findByFoodId(localFood.getId());
-
-      Map<String, Object> result = createFoodResponse(localFood, nutrition.orElse(null));
-      result.put("source", "cached");
-      result.put("message", "Food cached locally for faster access");
-
-      return result;
-
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to cache food: " + e.getMessage());
     }
   }
 
@@ -543,32 +610,6 @@ public class FoodSearchService {
   }
 
   @SuppressWarnings("unchecked")
-  private Map<String, Object> getFoodFromOpenFoodFacts(String barcode) {
-    try {
-      String url = config.getBaseUrl() + "/api/v2/product/" + barcode + ".json";
-
-      Map<String, Object> response = restTemplate.getForObject(url, Map.class);
-
-      if (response != null && "1".equals(String.valueOf(response.get("status")))) {
-        Map<String, Object> product = (Map<String, Object>) response.get("product");
-        return createAPIFoodResponse(product);
-      }
-
-      throw new RuntimeException("Product not found in Open Food Facts");
-
-    } catch (HttpClientErrorException.TooManyRequests e) {
-      System.err.println("Rate limit exceeded for product lookup: " + barcode);
-      throw new RuntimeException("API rate limit exceeded. Please try again later.");
-    } catch (HttpServerErrorException e) {
-      System.err.println("Open Food Facts server error: " + e.getStatusCode());
-      throw new RuntimeException("Open Food Facts service temporarily unavailable.");
-    } catch (Exception e) {
-      System.err.println("Error fetching product " + barcode + ": " + e.getMessage());
-      throw new RuntimeException("Product lookup failed: " + e.getMessage());
-    }
-  }
-
-  @SuppressWarnings("unchecked")
   private Map<String, Object> createAPIFoodResponse(Map<String, Object> product) {
     try {
       String name = getStringValue(product, "product_name");
@@ -686,5 +727,18 @@ public class FoodSearchService {
   private Double getDoubleOrZero(Map<String, Object> map, String key) {
     Double value = getDoubleValue(map, key);
     return value != null ? value : 0.0;
+  }
+
+  // Add this method to your class
+  private void printResponseBody(Map<String, Object> responseBody) {
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.enable(SerializationFeature.INDENT_OUTPUT);
+      String prettyJson = mapper.writeValueAsString(responseBody);
+      System.out.println("Response body (formatted):");
+      System.out.println(prettyJson);
+    } catch (Exception e) {
+      System.out.println("Response body (raw): " + responseBody);
+    }
   }
 }

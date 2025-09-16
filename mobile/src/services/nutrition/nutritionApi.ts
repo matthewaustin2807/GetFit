@@ -138,4 +138,27 @@ export class NutritionApiService {
         const response = await this.authenticatedFetch(`/api/foods/${foodId}/complete`);
         return response.json();
     }
+
+    // Water intake methods
+    static async logWaterIntake(userId: number, glasses: number, date?: string): Promise<any> {
+        const response = await this.authenticatedFetch('/api/water/log', {
+            method: 'POST',
+            body: JSON.stringify({
+                userId,
+                glasses,
+                date: date || new Date().toISOString().split('T')[0]
+            }),
+        });
+        return response.json();
+    }
+
+    static async getTodayWaterIntake(userId: number): Promise<any> {
+        const response = await this.authenticatedFetch(`/api/water/today?userId=${userId}`);
+        return response.json();
+    }
+
+    static async getWeeklyWaterIntake(userId: number): Promise<any> {
+        const response = await this.authenticatedFetch(`/api/water/weekly?userId=${userId}`);
+        return response.json();
+    }
 }

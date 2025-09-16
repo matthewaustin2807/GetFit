@@ -5,6 +5,8 @@ import IndividualMealContainer from '@/src/components/mealLogging/mealLoggingCom
 import { useDate } from '@/src/context/dateContext';
 import { NutritionApiService } from '@/src/services/nutrition/nutritionApi';
 import { Meal, NutritionSummary, UserMealSummary } from '@/src/types/nutrition';
+import { useAuthStore } from '@/src/store/authStore';
+import { router } from 'expo-router';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -16,6 +18,7 @@ const rf = (size: number) => size * PixelRatio.getFontScale();
 
 const MealLoggingPage = () => {
     const { selectedDate, setSelectedDate, displayDate } = useDate();
+    const { user, isAuthenticated } = useAuthStore();
     const [meals, setMeals] = useState<UserMealSummary | null>(null);
     const [nutritionSummary, setNutritionSummary] = useState<NutritionSummary | null>(null);
     const [mealMap, setMealMap] = useState<Map<String, Meal[]>>(new Map<String, Meal[]>([
@@ -27,12 +30,16 @@ const MealLoggingPage = () => {
     ]));
 
     useEffect(() => {
+        if (!isAuthenticated) router.replace('/auth/authpage')
+    }, [isAuthenticated]);
+
+    useEffect(() => {
         const getMealsAndSummary = async () => {
             try {
-                const mealResponse = await NutritionApiService.getMealsByDate(3, selectedDate.toISOString().split('T')[0])
+                const mealResponse = await NutritionApiService.getMealsByDate(user!.id, selectedDate.toISOString().split('T')[0])
                 setMeals(mealResponse)
 
-                const summaryResponse = await NutritionApiService.getNutritionSummaryByDate(3, selectedDate.toISOString().split('T')[0])
+                const summaryResponse = await NutritionApiService.getNutritionSummaryByDate(user!.id, selectedDate.toISOString().split('T')[0])
                 setNutritionSummary(summaryResponse);
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : 'Failed to fetch data';
@@ -82,11 +89,11 @@ const MealLoggingPage = () => {
     ]
 
     return (
-        <ScrollView>
-            <DailyNutritionSummary nutritionSummary={nutritionSummary}/>
+        <ScrollView style={styles.container}>
+            <DailyNutritionSummary nutritionSummary={nutritionSummary} />
             <View>
                 {mealTimes.map((item, index) => (
-                    <IndividualMealContainer key={item.type} text={item.text} type={item.type} meals={mealMap.get(item.type) ?? []}  />
+                    <IndividualMealContainer key={item.type} text={item.text} type={item.type} meals={mealMap.get(item.type) ?? []} />
                 ))}
             </View>
         </ScrollView>
@@ -97,9 +104,7 @@ export default MealLoggingPage
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        borderColor: 'black',
-        borderWidth: 1,
+        paddingBottom: hp(5),
     },
 
 })

@@ -1,8 +1,8 @@
 import { Alert, Dimensions, Modal, PixelRatio, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Icon } from '@rneui/base'
 import { useMealType } from '@/src/context/mealTypeContext';
-import { User } from '@/src/store/authStore';
+import { useAuthStore, User } from '@/src/store/authStore';
 import NutritionImpactCard from '@/src/components/mealLogging/foodDetailComponents/nutritionImpactCard';
 import { FoodItem } from '@/src/types/nutrition';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -33,10 +33,9 @@ interface FoodDetailPageProps {
     user?: User
 }
 
-const FoodDetailPage: React.FC<FoodDetailPageProps> = ({
-    user
-}) => {
+const FoodDetailPage = () => {
     const { foodData } = useLocalSearchParams();
+    const { user, isAuthenticated } = useAuthStore();
     const { selectedMealType } = useMealType();
     const { selectedDate } = useDate();
     const [numberOfServings, setNumberOfServings] = useState(1);
@@ -45,13 +44,17 @@ const FoodDetailPage: React.FC<FoodDetailPageProps> = ({
         setNumberOfServings(servings);
     };
 
+    useEffect(() => {
+        if (!isAuthenticated) router.replace('/auth/authpage')
+    }, [isAuthenticated]);
+
     // Parse the serialized food data
     const food: FoodItem = JSON.parse(foodData as string);
 
     const logFood = async () => {
         try {
             const logRequest = {
-                userId: 3,
+                userId: user!.id,
                 foodId: food.id!,
                 quantityGrams: 100 * numberOfServings, // Convert servings to grams
                 mealType: selectedMealType.toUpperCase() as 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER',

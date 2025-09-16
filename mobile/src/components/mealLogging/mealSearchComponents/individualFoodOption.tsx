@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import { NutritionApiService } from '@/src/services/nutrition/nutritionApi';
 import { useMealType } from '@/src/context/mealTypeContext';
 import { useDate } from '@/src/context/dateContext';
+import { useAuthStore } from '@/src/store/authStore';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -22,8 +23,9 @@ interface IndividualFoodOptionProps {
 const IndividualFoodOption: React.FC<IndividualFoodOptionProps> = ({
     item
 }) => {
-    const { selectedMealType } = useMealType(); 
+    const { selectedMealType } = useMealType();
     const { selectedDate } = useDate();
+    const { user, isAuthenticated } = useAuthStore();
 
     const goToFoodDetail = () => {
         router.push({
@@ -37,7 +39,7 @@ const IndividualFoodOption: React.FC<IndividualFoodOptionProps> = ({
     const logFood = async () => {
         try {
             const logRequest = {
-                userId: 3,
+                userId: user!.id,
                 foodId: item.id!,
                 quantityGrams: 100, // Convert servings to grams
                 mealType: selectedMealType.toUpperCase() as 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER',

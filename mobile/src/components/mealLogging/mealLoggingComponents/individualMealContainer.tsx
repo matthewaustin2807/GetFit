@@ -71,7 +71,7 @@ export default IndividualMealContainer
 
 const styles = StyleSheet.create({
     individualMealContainer: {
-        marginTop: hp(1),
+        marginBottom: hp(1),
         backgroundColor: '#FFFFFF',
         paddingVertical: hp(1),
         marginHorizontal: wp(3),

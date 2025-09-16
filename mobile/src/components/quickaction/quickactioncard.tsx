@@ -5,6 +5,7 @@ import {
     StyleSheet,
     Dimensions,
     PixelRatio,
+    TouchableOpacity,
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -17,20 +18,22 @@ interface QuickActionCardProps {
     color: string;
     icon?: string;
     subtitle?: string;
+    onPress?: () => void;
 }
 
 const QuickActionCard: React.FC<QuickActionCardProps> = ({
     title,
     color,
     icon,
-    subtitle
+    subtitle,
+    onPress
 }) => {
     return (
-        <View style={styles.card}>
+        <TouchableOpacity onPress={onPress} style={styles.card}>
             {icon && <Text style={styles.icon}>{icon}</Text>}
             <Text style={styles.title}>{title}</Text>
             <Text>{subtitle}</Text>
-        </View>
+        </TouchableOpacity>
     )
 }
 
@@ -45,8 +48,8 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowRadius: 8,
+        elevation: 5,
     },
     icon: {
         fontSize: rf(18),

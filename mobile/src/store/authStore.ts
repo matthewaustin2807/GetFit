@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
+import API_CONFIG from '../services/config/apiConfig';
 
 export interface User {
   id: number;
@@ -66,7 +67,7 @@ const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'user_data';
 
 // Replace with your actual IP
-const API_BASE_URL = 'http://10.0.0.17:8091';
+const API_BASE_URL = `${API_CONFIG.BASE_URL}:8091`;
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
